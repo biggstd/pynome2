@@ -37,6 +37,7 @@ ASSEMBLY_TABLE = Table(
 )
 
 # Map the Assembly class to the Table object created above.
+mapper(Assembly, ASSEMBLY_TABLE)
 
 
 class AssemblyStorage:
