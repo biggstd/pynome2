@@ -57,8 +57,8 @@ class AssemblyDatabase(abc.ABC):
         if val is not None and hasattr(val, '__iter__'):
             if val == [] or all(isinstance(x, Assembly) for x in val):
                 self.__assemblies = list(val)
+
         # Otherwise, raise an error complaining about invalid attributes.
-        # TODO: Examine the most 'pythonic' way of raising errors.
         else:
             raise AttributeError(
                 '{0} assemblies must be an list containing Assembly '

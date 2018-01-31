@@ -7,6 +7,9 @@
 .. moduleauthor:: Tyler Biggs <biggstd@gmail.com>
 """
 
+# Import general python packages.
+import os
+
 
 class Assembly:
     """Models a genome assembly for use by Pynome.
@@ -16,6 +19,9 @@ class Assembly:
     use by creating a `.gff` file, finding splice sites, and creating an
     index with `hisat2`.
     """
+
+    # pylint: disable=too-many-instance-attributes
+    # pylint: disable-msg=too-many-arguments
 
     def __init__(
             self,
@@ -41,36 +47,42 @@ class Assembly:
         self.version = version
         self.gff3_remote_path = gff3_remote_path
         self.gff3_remote_size = gff3_remote_size
+        self.fasta_remote_path = fasta_remote_path
+        self.fasta_remote_size = fasta_remote_size
 
         # Declare private attributes for use by properties.
-        self._pynome_id = None
         self._taxonomy_id = None
         self._base_filename = None
         self._base_filepath = None
 
     @property
-    def pynome_id(self):
-        """Getter function for the pynome_id attribute."""
-        pass
-
-    @property
     def taxonomy_id(self):
         """Getter function for the assemblies taxonomy_id."""
-        pass
+        return '-'.join((self.base_filename, self.assembly_id))
 
     @property
     def base_filename(self):
         """Getter function for the assemblies base_filename.
         This is the filename used by Pynome to save assembly files locally.
         """
-        pass
+        if self.intraspecific_name is not None:
+            name = '_'.join(
+                (self.genus, self.species, self.intraspecific_name))
+        else:
+            name = '_'.join((self.genus, self.species))
+
+        return '-'.join((name, self.assembly_id))
 
     @property
     def base_filepath(self):
         """Getter function for the base_filepath of this assembly.
         This is the path used to sort / save local assembly files.
         """
-        pass
+        if self.intraspecific_name is not None:
+
+            # Use the os path module to ensure the path is
+            # generated correctly for the system we are on.
+            os.path.join(self.base_filename, self.assembly_id)
 
     def update(self):
         """Update the current assembly with new information.

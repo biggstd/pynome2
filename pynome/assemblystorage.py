@@ -7,8 +7,36 @@
 .. moduleauthor:: Tyler Biggs <biggstd@gmail.com>
 """
 
+# SQLAlchemy imports
+from sqlalchemy import Table, MetaData, Column, String, Integer
+from sqlalchemy.orm import mapper
+
 # Inter-package imports.
 from pynome.assemblydatabase import AssemblyDatabase
+from pynome.assembly import Assembly
+
+
+# SQLalchemy Metadata object.
+METADATA = MetaData()
+
+# SQLAlchemy table and mapper for the Assembly object.
+ASSEMBLY_TABLE = Table(
+    'Assemblies',
+    Column('species', String()),
+    Column('genus', String()),
+    Column('intraspecific_name', String()),
+    Column('assembly_id', String()),
+    Column('version', String()),
+    Column('gff3_remote_path', String()),
+    Column('gff3_remote_size', String()),
+    Column('fasta_remote_path', String()),
+    Column('fasta_remote_size', String()),
+    Column('taxonomy_id', String()),
+    Column('base_filename', String()),
+    Column('base_filepath', String()),
+)
+
+# Map the Assembly class to the Table object created above.
 
 
 class AssemblyStorage:
