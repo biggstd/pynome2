@@ -24,10 +24,10 @@ from pynome.utils import crawl_ftp_dir
 # EnsemblDatabase class, but do not require an instance of self to be run.
 
 
-def __parse_ensembl_dir_line(in_line):
-    """Parse an indivudual line item from an ftp.dir() call.
+def parse_ensembl_dir_line(in_line):
+    """Parse an individual line item from an ftp.dir() call.
 
-    This funciton splits a line retrieved from the ensembl ftp server
+    This function splits a line retrieved from the ensembl ftp server
     from a call to ftp.dir().
 
     :param in_line:
@@ -122,7 +122,7 @@ class EnsemblDatabase(AssemblyDatabase):
     genome assembly files from the Ensembl database.
     """
 
-    def __init__(self, ignored_dirs, ftp_url, data_types, kingdoms,
+    def __init__(self, ignored_dirs, data_types, ftp_url, kingdoms,
                  release_version, **kwargs):
         """The initialization function for EnsemblDatabase.
 
@@ -214,7 +214,7 @@ class EnsemblDatabase(AssemblyDatabase):
         """
 
         # Parse the line.
-        parsed_line = __parse_ensembl_dir_line(line)
+        parsed_line = parse_ensembl_dir_line(line)
 
         # Examine the parsed output to determine if a GenomeAssembly object
         # should be created. Create a dictinoary of kwargs and filter off
@@ -274,8 +274,6 @@ class EnsemblDatabase(AssemblyDatabase):
 
             # Exit the if loop.
             return
-
-
 
     def crawl(self):
         """Begin the Ensembl-specific crawl at...

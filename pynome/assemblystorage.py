@@ -7,37 +7,71 @@
 .. moduleauthor:: Tyler Biggs <biggstd@gmail.com>
 """
 
+# General Python imports.
+import os
+
 # SQLAlchemy imports
-from sqlalchemy import Table, MetaData, Column, String, Integer
-from sqlalchemy.orm import mapper
+from sqlalchemy import Table, MetaData, Column, String, Integer, create_engine
+from sqlalchemy.orm import mapper, sessionmaker
 
 # Inter-package imports.
 from pynome.assemblydatabase import AssemblyDatabase
 from pynome.assembly import Assembly
 
 
-# SQLalchemy Metadata object.
-METADATA = MetaData()
+def init_sql_db(sql_path):
+    """Initializze a local SQLite database to track Assemblies.
 
-# SQLAlchemy table and mapper for the Assembly object.
-ASSEMBLY_TABLE = Table(
-    'Assemblies',
-    Column('species', String()),
-    Column('genus', String()),
-    Column('intraspecific_name', String()),
-    Column('assembly_id', String()),
-    Column('version', String()),
-    Column('gff3_remote_path', String()),
-    Column('gff3_remote_size', String()),
-    Column('fasta_remote_path', String()),
-    Column('fasta_remote_size', String()),
-    Column('taxonomy_id', String()),
-    Column('base_filename', String()),
-    Column('base_filepath', String()),
-)
+    This function maps the Assembly class to an SQL table, then creates
+    or loads an sqlite database at the given `sql_path`.
 
-# Map the Assembly class to the Table object created above.
-mapper(Assembly, ASSEMBLY_TABLE)
+    :param sql_path:
+        A filepath where the sqlite database should be loaded from,
+        or created at.
+
+    :returns:
+        An instance of Session from SQLAlchemy for accessing the databse.
+    """
+
+    # SQLalchemy Metadata object.
+    metadata = MetaData()
+
+    # SQLAlchemy table and mapper for the Assembly object.
+    assembly_table = Table(
+        'Assemblies',
+        metadata,
+        Column('species', String()),
+        Column('genus', String()),
+        Column('intraspecific_name', String()),
+        Column('assembly_id', String()),
+        Column('version', String()),
+        Column('gff3_remote_path', String()),
+        Column('gff3_remote_size', Integer()),
+        Column('fasta_remote_path', String()),
+        Column('fasta_remote_size', Integer()),
+        Column('taxonomy_id', String()),
+        Column('base_filename', String()),
+        Column('base_filepath', String()),
+    )
+
+    # Map the Assembly class to the Table object created above.
+    mapper(Assembly, assembly_table)
+
+    # Create the database engine. This function returns an instance of
+    # `Engine`. It is the core interface to the database.
+    engine = create_engine(
+        'sqlite:///{0}'.format(os.path.abspath(sql_path))
+    )
+
+    # Use the metadata object to create and bind the sql table(s).
+    metadata.create_all(engine)
+
+    # Now instantiate the session class.
+    # Define a Session class, this will serve as a factory for
+    # new Session objects.
+    session = sessionmaker(bind=engine)
+
+    return session
 
 
 class AssemblyStorage:
@@ -46,15 +80,24 @@ class AssemblyStorage:
     Provides functions for interacting with those instances.
     """
 
-    def __init__(self, sources=None, base_path=None, irods_base_path=None):
+    def __init__(
+            self,
+            sqlite_session,
+            sources=None,
+            base_path=None,
+            irods_base_path=None):
         """Initialization of the AssemblyStorage class.
         """
 
         # Define the public attributes of the class.
+        self.sqlite_session = sqlite_session
         self.base_path = base_path
         self.irods_base_path = irods_base_path
 
         # Define the private attributes of the class for use by properties.
+        self.session = init_sql_db(sql_path=self.base_path)
+
+        # Prepare the sources attribute, ensure it is a list.
         if sources is None:
             self.__sources = list()
         else:
@@ -104,6 +147,8 @@ class AssemblyStorage:
 
     def find_assembly(self):
         """Return an assembly, or list of assemblies that match given criteria.
+
+        This is a local query.
         """
         pass
 

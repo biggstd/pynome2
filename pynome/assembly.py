@@ -4,7 +4,7 @@
     :platform: Unix
     :synopsis:
 
-.. moduleauthor:: Tyler Biggs <biggstd@gmail.com>
+.. moduleauthors:: Tyler Biggs <biggstd@gmail.com>
 """
 
 # Import general python packages.
@@ -65,6 +65,8 @@ class Assembly:
         """Getter function for the assemblies base_filename.
         This is the filename used by Pynome to save assembly files locally.
         """
+
+        # Return different values based on the optional intraspecific_name.
         if self.intraspecific_name is not None:
             name = '_'.join(
                 (self.genus, self.species, self.intraspecific_name))
@@ -78,11 +80,9 @@ class Assembly:
         """Getter function for the base_filepath of this assembly.
         This is the path used to sort / save local assembly files.
         """
-        if self.intraspecific_name is not None:
-
-            # Use the os path module to ensure the path is
-            # generated correctly for the system we are on.
-            os.path.join(self.base_filename, self.assembly_id)
+        # Use the os path module to ensure the path is
+        # generated correctly for the system we are on.
+        os.path.join(self.base_filename, self.assembly_id)
 
     def update(self):
         """Update the current assembly with new information.
