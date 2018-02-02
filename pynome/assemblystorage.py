@@ -20,7 +20,7 @@ from pynome.assembly import Assembly
 
 
 def init_sql_db(sql_path):
-    """Initializze a local SQLite database to track Assemblies.
+    """Initialize a local SQLite database to track Assemblies.
 
     This function maps the Assembly class to an SQL table, then creates
     or loads an sqlite database at the given `sql_path`.
@@ -36,11 +36,14 @@ def init_sql_db(sql_path):
     # SQLalchemy Metadata object.
     metadata = MetaData()
 
+    # TODO: Pick a primary key! primary_key=True
     # SQLAlchemy table and mapper for the Assembly object.
     assembly_table = Table(
         'Assemblies',
         metadata,
-        Column('species', String()),
+        # The base_filename attribute is the most unique name.
+        Column('base_filename', String()),
+        Column('species', String(), primary_key=True),
         Column('genus', String()),
         Column('intraspecific_name', String()),
         Column('assembly_id', String()),
@@ -50,26 +53,24 @@ def init_sql_db(sql_path):
         Column('fasta_remote_path', String()),
         Column('fasta_remote_size', Integer()),
         Column('taxonomy_id', String()),
-        Column('base_filename', String()),
         Column('base_filepath', String()),
     )
 
-    # Map the Assembly class to the Table object created above.
-    mapper(Assembly, assembly_table)
-
     # Create the database engine. This function returns an instance of
     # `Engine`. It is the core interface to the database.
-    engine = create_engine(
-        'sqlite:///{0}'.format(os.path.abspath(sql_path))
-    )
+    engine = create_engine(sql_path)
 
     # Use the metadata object to create and bind the sql table(s).
     metadata.create_all(engine)
 
     # Now instantiate the session class.
-    # Define a Session class, this will serve as a factory for
-    # new Session objects.
+    # Define a Session class, which will be our access point to the
+    # sqlite databse.
     session = sessionmaker(bind=engine)
+
+    # Map the Assembly class to the Table object created above. This must be
+    # done after the above commands. The documentation is very unclear.
+    mapper(Assembly, assembly_table)
 
     return session
 
@@ -88,14 +89,11 @@ class AssemblyStorage:
             irods_base_path=None):
         """Initialization of the AssemblyStorage class.
         """
-
+        # TODO: Comment the init function paramaters.
         # Define the public attributes of the class.
-        self.sqlite_session = sqlite_session
         self.base_path = base_path
+        self.sqlite_session = sqlite_session
         self.irods_base_path = irods_base_path
-
-        # Define the private attributes of the class for use by properties.
-        self.session = init_sql_db(sql_path=self.base_path)
 
         # Prepare the sources attribute, ensure it is a list.
         if sources is None:
