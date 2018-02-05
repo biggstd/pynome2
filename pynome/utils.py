@@ -23,6 +23,7 @@ def read_json_config(config_file='pynome_config.json'):
     # Return the loaded configuration dictionary.
     return config_dict
 
+
 def dir_check(dir_line, bad_dirs):
     """Checks if the input: dir_value is a directory. Assumes the input
     will be in the following format:

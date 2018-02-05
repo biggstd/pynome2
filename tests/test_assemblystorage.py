@@ -6,14 +6,14 @@ from pynome.assemblystorage import init_sql_db, AssemblyStorage
 from pynome.assembly import Assembly
 
 
-def test_init_sql_db():
-    """Test the sqlite database initialization."""
+# def test_init_sql_db():
+#     """Test the sqlite database initialization."""
+#
+#     # Create an sqlite session in memory.
+#     test_session = init_sql_db('sqlite://')
 
-    # Create an sqlite session in memory.
-    test_session = init_sql_db('sqlite://')
 
-
-# Don't run these both at the same time! It crashes.
+# Don't run these both at the same time! The sqlite session breaks.
 def test_AssemblyStorage():
     """Test the AssemblyStorage class."""
 

@@ -39,7 +39,7 @@ def parse_ensembl_dir_line(in_line):
         GenomeAssembly object.
 
 
-    An example line is shown below::
+    An example line, and its index locations, are shown below::
 
         ``"drwxr-sr-x  2 ftp   ftp    4096 Jan 13  2015 filename"
            [0]        [1][2]   [3]    [4]  [5] [6] [7]  [8] or [-1]``
@@ -275,16 +275,23 @@ class EnsemblDatabase(AssemblyDatabase):
             # Exit the if loop.
             return
 
-    def crawl(self):
+    def crawl(self, uri_list=None):
         """Begin the Ensembl-specific crawl at...
         """
+        # TODO: Comment docstring.
+        # TODO: Refactor this function. It should return a list or
+        # dictionary to the AssemblyStorage class for saving.
+
+        # If no uri_list is provided, set it to the class property.
+        if uri_list is None:
+            uri_list = self.top_dirs
 
         # Connect to the FTP server and login with anonymous credentials.
         self.ftp.connect(self.ftp_url)
         self.ftp.login()
 
         # Start a crawl at each uri.
-        for uri in self.top_dirs:
+        for uri in uri_list:
             crawl_ftp_dir(
                 ftp=self.ftp,
                 top_dir=uri,

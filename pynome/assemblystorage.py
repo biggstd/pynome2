@@ -37,6 +37,8 @@ def init_sql_db(sql_path):
     metadata = MetaData()
 
     # TODO: Pick a primary key! primary_key=True
+    # This can't seem to be a property, it gives an error regarding
+    # being unable to generate a primary key if this is the case.
     # SQLAlchemy table and mapper for the Assembly object.
     assembly_table = Table(
         'Assemblies',
@@ -116,6 +118,7 @@ class AssemblyStorage:
         Ensures that all objects passed to / stored in this private attribute
         are isntances of the AssemblyDatabase class.
         """
+        # TODO: Consider if this logic is needed.
         if val is not None and hasattr(val, '__iter__'):
             if val == [] or all(isinstance(x, AssemblyDatabase) for x in val):
                 self.__sources = list(val)
@@ -126,8 +129,12 @@ class AssemblyStorage:
 
     def crawl(self, assembly_database):
         """Call the crawl function on the given assembly_database.
+
+        This the assembly database should return something for this class
+        to handle saving.
         """
-        assembly_database.crawl()
+        # TODO: Impelment / plan me.
+        retrieved_genomes = assembly_database.crawl()
 
     def crawl_all(self):
         """Call the crawl function on every AssemblyDatabase in sources.

@@ -1,0 +1,19 @@
+{
+  "ensembl_config":{
+    "name": "Ensembl Database",
+    "ftp_url": "ftp.ensemblgenomes.org",
+    "data_types": ["gff3", "fasta"],
+    "kingdoms": ["fungi", "metazoa", "plants", "protists"],
+    "ignored_dirs": ["cdna", "cds", "dna_index", "ncrna", "pep"],
+    "release_version": "release-38",
+    "description": "The Ensembl genome annotation system.",
+    "url": "http://ensemblgenomes.org/",
+    "test_urls": [
+      "/pub/release-38/metazoa/fasta/acyrthosiphon_pisum/",
+      "/pub/release-38/metazoa/gff3/acyrthosiphon_pisum/"
+    ]
+  },
+  "storage_config":{
+    "irods_base_path":"/ScidasZone/Sysbio/genomes/"
+  }
+}

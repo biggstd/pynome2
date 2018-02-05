@@ -2,11 +2,19 @@
 
 """
 
-from pynome.ensembldatabse import EnsemblDatabase, parse_ensembl_dir_line
+from pynome.ensembldatabase import EnsemblDatabase
 
 
-def test_EnsemblDatabase():
-    """
-    # TODO: Comment me!
-    """
-    ed = EnsemblDatabase()
+def test_EnsemblDatabase(test_config):
+
+    # Initialize the EnsemblDatabase
+    ed = EnsemblDatabase(
+        name=test_config['ensembl_config']['name'],
+        url=test_config['ensembl_config']['url'],
+        description=test_config['ensembl_config']['description'],
+        ignored_dirs=test_config['ensembl_config']['ignored_dirs'],
+        data_types=test_config['ensembl_config']['data_types'],
+        ftp_url=test_config['ensembl_config']['ftp_url'],
+        kingdoms=test_config['ensembl_config']['kingdoms'],
+        release_version=test_config['ensembl_config']['release_version'],
+    )
