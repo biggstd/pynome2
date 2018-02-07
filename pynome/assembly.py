@@ -7,6 +7,8 @@
 .. moduleauthors:: Tyler Biggs <biggstd@gmail.com>
 """
 
+# TODO: Refactor this to use the SQLAlchemy ORM declaration.
+
 # Import general python packages.
 import os
 

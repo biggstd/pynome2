@@ -18,3 +18,6 @@ def test_EnsemblDatabase(test_config):
         kingdoms=test_config['ensembl_config']['kingdoms'],
         release_version=test_config['ensembl_config']['release_version'],
     )
+
+    # Test Ensembl properties.
+    print(f'\nEnsembl metadata URI: {ed.metadata_uri}')

@@ -14,3 +14,7 @@ pynome.egg-info/requires.txt
 pynome.egg-info/top_level.txt
 tests/__init__.py
 tests/conftest.py
+tests/test_assembly.py
+tests/test_assemblydatabase.py
+tests/test_assemblystorage.py
+tests/test_ensembldatabase.py

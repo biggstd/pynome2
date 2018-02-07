@@ -1,6 +1,7 @@
 """Tests for the assemblystroage.py module of Pynome.
 
 """
+import logging
 
 from pynome.assemblystorage import init_sql_db, AssemblyStorage
 from pynome.assembly import Assembly
