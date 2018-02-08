@@ -7,74 +7,13 @@
 .. moduleauthor:: Tyler Biggs <biggstd@gmail.com>
 """
 
-# General Python imports.
-import os
-
-# SQLAlchemy imports
-from sqlalchemy import Table, MetaData, Column, String, Integer, create_engine
-from sqlalchemy.orm import mapper, sessionmaker
+# SQLAlchemy imports.
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker
 
 # Inter-package imports.
 from pynome.assemblydatabase import AssemblyDatabase
-from pynome.assembly import Assembly
-
-
-def init_sql_db(sql_path):
-    """Initialize a local SQLite database to track Assemblies.
-
-    This function maps the Assembly class to an SQL table, then creates
-    or loads an sqlite database at the given `sql_path`.
-
-    :param sql_path:
-        A filepath where the sqlite database should be loaded from,
-        or created at.
-
-    :returns:
-        An instance of Session from SQLAlchemy for accessing the databse.
-    """
-
-    # SQLalchemy Metadata object.
-    metadata = MetaData()
-
-    # TODO: Pick a primary key! primary_key=True
-    # This can't seem to be a property, it gives an error regarding
-    # being unable to generate a primary key if this is the case.
-    # SQLAlchemy table and mapper for the Assembly object.
-    assembly_table = Table(
-        'Assemblies',
-        metadata,
-        # The base_filename attribute is the most unique name.
-        Column('base_filename', String()),
-        Column('species', String(), primary_key=True),
-        Column('genus', String()),
-        Column('intraspecific_name', String()),
-        Column('assembly_id', String()),
-        Column('version', String()),
-        Column('gff3_remote_path', String()),
-        Column('gff3_remote_size', Integer()),
-        Column('fasta_remote_path', String()),
-        Column('fasta_remote_size', Integer()),
-        Column('taxonomy_id', String()),
-        Column('base_filepath', String()),
-    )
-
-    # Create the database engine. This function returns an instance of
-    # `Engine`. It is the core interface to the database.
-    engine = create_engine(sql_path)
-
-    # Use the metadata object to create and bind the sql table(s).
-    metadata.create_all(engine)
-
-    # Now instantiate the session class.
-    # Define a Session class, which will be our access point to the
-    # sqlite databse.
-    session = sessionmaker(bind=engine)
-
-    # Map the Assembly class to the Table object created above. This must be
-    # done after the above commands. The documentation is very unclear.
-    mapper(Assembly, assembly_table)
-
-    return session
+from pynome.assembly import Base
 
 
 class AssemblyStorage:
@@ -85,7 +24,7 @@ class AssemblyStorage:
 
     def __init__(
             self,
-            sqlite_session,
+            sqlite_path,
             sources=None,
             base_path=None,
             irods_base_path=None):
@@ -94,38 +33,16 @@ class AssemblyStorage:
         # TODO: Comment the init function paramaters.
         # Define the public attributes of the class.
         self.base_path = base_path
-        self.sqlite_session = sqlite_session
+        self.sources = sources
+
+        # self.sqlite_session = sqlite_session
         self.irods_base_path = irods_base_path
 
-        # Prepare the sources attribute, ensure it is a list.
-        if sources is None:
-            self.__sources = list()
-        else:
-            self.__sources = sources
-
-    @property
-    def sources(self):
-        """A list container for AssemblyDatabase objects.
-
-        This is the getter function for this property.
-        """
-        return self.__sources
-
-    @sources.setter
-    def sources(self, val):
-        """The setter for the sources list.
-
-        Ensures that all objects passed to / stored in this private attribute
-        are isntances of the AssemblyDatabase class.
-        """
-        # TODO: Consider if this logic is needed.
-        if val is not None and hasattr(val, '__iter__'):
-            if val == [] or all(isinstance(x, AssemblyDatabase) for x in val):
-                self.__sources = list(val)
-        else:
-            raise AttributeError(
-                '{0} sources must be a list containing AssemblyDatabase'
-                'objects.'.format(type(self).__name__))
+        # Prepare the SQLite engine and session.
+        self.engine = create_engine(sqlite_path)
+        # Create the tables.
+        Base.metadata.create_all(self.engine)
+        self.session = sessionmaker(bind=self.engine)
 
     def crawl(self, assembly_database):
         """Call the crawl function on the given assembly_database.

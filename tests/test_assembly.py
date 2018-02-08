@@ -12,6 +12,10 @@ def test_assembly():
     no_intra_assembly = Assembly(
         species='testerius',
         genus='genius',
+        assembly_id='gtID'
     )
 
     assert no_intra_assembly.species == 'testerius'
+    assert no_intra_assembly.genus == 'genius'
+    assert no_intra_assembly.assembly_id == 'gtID'
+    assert no_intra_assembly.base_filename == 'genius_testerius-gtID'

@@ -12,8 +12,16 @@
 # Import general python packages.
 import os
 
+# SQLAlchemy imports.
+from sqlalchemy import Column, Integer, String
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.ext.hybrid import hybrid_property
 
-class Assembly:
+# Create the declarative base class.
+Base = declarative_base()
+
+
+class Assembly(Base):
     """Models a genome assembly for use by Pynome.
 
     Prepares identifier strings and filepaths based on its attributes. Also
@@ -22,62 +30,58 @@ class Assembly:
     index with `hisat2`.
     """
 
-    # pylint: disable=too-many-instance-attributes
-    # pylint: disable-msg=too-many-arguments
+    __tablename__ = 'Assemblies'
 
-    def __init__(
-            self,
-            species,
-            genus,
-            intraspecific_name=None,
-            assembly_id=None,
-            version=None,
-            gff3_remote_path=None,
-            gff3_remote_size=None,
-            fasta_remote_path=None,
-            fasta_remote_size=None):
-        """Assembly initialization requires only a species and genus.
+    def __init__(self, species, genus, assembly_id, intraspecific_name=None):
+        """Initialization of the Assembly model class. Builds the primary
+        key to be used by the SQLite database.
 
-        The remaining attributes and properties default to `None`.
+        :param species:
+
+        :param genus:
+
+        :param assembly_id:
+
+        :param intraspecific_name:
         """
-
-        # Declare public attributes, and assign them to the class instance.
         self.species = species
         self.genus = genus
-        self.intraspecific_name = intraspecific_name
         self.assembly_id = assembly_id
-        self.version = version
-        self.gff3_remote_path = gff3_remote_path
-        self.gff3_remote_size = gff3_remote_size
-        self.fasta_remote_path = fasta_remote_path
-        self.fasta_remote_size = fasta_remote_size
+        self.intraspecific_name = intraspecific_name
 
-        # Declare private attributes for use by properties.
-        self._taxonomy_id = None
-        self._base_filename = None
-        self._base_filepath = None
+        self.base_filename = None
 
-    @property
-    def taxonomy_id(self):
-        """Getter function for the assemblies taxonomy_id."""
-        return '-'.join((self.base_filename, self.assembly_id))
-
-    @property
-    def base_filename(self):
-        """Getter function for the assemblies base_filename.
-        This is the filename used by Pynome to save assembly files locally.
-        """
-
-        # Return different values based on the optional intraspecific_name.
-        if self.intraspecific_name is not None:
-            name = '_'.join(
-                (self.genus, self.species, self.intraspecific_name))
+        if intraspecific_name is not None:
+            name = '_'.join((
+                self.genus,
+                self.species,
+                self.intraspecific_name
+            ))
         else:
             name = '_'.join((self.genus, self.species))
 
-        return '-'.join((name, self.assembly_id))
+        self.base_filename = '-'.join((name, self.assembly_id))
 
-    @property
+    # Declare public attributes, and assign them to the class instance.
+    # Columns declared in this way can be accessed as if they were
+    # self.column_name, that is, the same as other attributes.
+    base_filename = Column(String, primary_key=True)
+    species = Column(String)
+    genus = Column(String)
+    intraspecific_name = Column(String)
+    assembly_id = Column(String)
+    version = Column(String)
+    gff3_remote_path = Column(String)
+    gff3_remote_size = Column(Integer)
+    fasta_remote_path = Column(String)
+    fasta_remote_size = Column(Integer)
+    taxonomy_id = Column(String)
+
+    # Declare private attributes for use by properties.
+    # base_filename = Column(String)
+    # base_filepath = Column(String)
+
+    @hybrid_property
     def base_filepath(self):
         """Getter function for the base_filepath of this assembly.
         This is the path used to sort / save local assembly files.

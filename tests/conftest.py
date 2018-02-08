@@ -16,6 +16,7 @@ import pytest
 
 # Import Pynome-specific classes and functions.
 from pynome.utils import read_json_config
+from pynome.ensembldatabase import EnsemblDatabase
 
 
 @pytest.fixture(scope='session')
@@ -29,3 +30,21 @@ def test_config():
     test_config_path = os.path.join('tests', 'test_config.json')
 
     return read_json_config(test_config_path)
+
+
+@pytest.fixture(scope='session')
+def test_ed(test_config):
+    """Create an instance of EnsemblDatabase for testing.
+    """
+    ed = EnsemblDatabase(
+        name=test_config['ensembl_config']['name'],
+        url=test_config['ensembl_config']['url'],
+        description=test_config['ensembl_config']['description'],
+        ignored_dirs=test_config['ensembl_config']['ignored_dirs'],
+        data_types=test_config['ensembl_config']['data_types'],
+        ftp_url=test_config['ensembl_config']['ftp_url'],
+        kingdoms=test_config['ensembl_config']['kingdoms'],
+        release_version=test_config['ensembl_config']['release_version'],
+    )
+
+    return ed
