@@ -10,6 +10,7 @@
 
 # Import general Python packages.
 import json
+import logging
 
 
 def read_json_config(config_file='pynome_config.json'):
@@ -22,38 +23,6 @@ def read_json_config(config_file='pynome_config.json'):
 
     # Return the loaded configuration dictionary.
     return config_dict
-
-
-def dir_check(dir_line, bad_dirs):
-    """Checks if the input: dir_value is a directory. Assumes the input
-    will be in the following format:
-
-         ``"drwxr-sr-x  2 ftp   ftp    4096 Jan 13  2015 filename"``
-
-    This works by checking the first letter of the input string,
-    and returns True for a directory or False otherwise.
-
-    :param dir_line:
-        A line as retrieved by ftplib.dir().
-
-    :param bad_dirs:
-        A list of directories that should cause the function to
-        return False.
-
-    :returns:
-        A boolean value. True if `dir_line` represents a directory,
-        and this directory does not fall into the list given in `bad_dirs`.
-    """
-    # Split the dir_line by whitespace.
-    split_line = dir_line.split()
-
-    # Check the first character of the dir output. If it is a 'd'
-    # the corresponding line is a directory listing, and we should
-    # examine that directory.
-    # If the targeted directory matches an entry in bad_dirs, that
-    # directory should also be passed over.
-    return bool(split_line[0][0] == 'd' and \
-                not any(bd == split_line[-1] for bd in bad_dirs))
 
 
 def crawl_ftp_dir(ftp, top_dir, parsing_function, ignored_dirs):
@@ -73,6 +42,8 @@ def crawl_ftp_dir(ftp, top_dir, parsing_function, ignored_dirs):
         The function to parse each non-directory result.
 
     """
+    logging.debug(f'Top dir: {top_dir}')
+
     # Create an empty list to hold the callback
     retrieved_dir_list = []
 
@@ -84,14 +55,25 @@ def crawl_ftp_dir(ftp, top_dir, parsing_function, ignored_dirs):
     # For each line / directory listing retrieved.
     for line in retrieved_dir_list:
 
-        # Check to see if this item is a (good) directory.
-        # If it is, start the crawl function on that directory.
-        if dir_check(line, ignored_dirs):
+        # Split the line by whitespace.
+        split_line = line.split()
 
-            # Construct the new top directory to start a crawl.
-            target_dir = ''.join((top_dir, line.split()[-1], '/'))
-            # Start a new crawl at this directory.
-            crawl_ftp_dir(ftp, target_dir, parsing_function, ignored_dirs)
+        # Check if this entry is a directory.
+        if split_line[0][0] == 'd':
+
+            # If so, ensure it is not one of the dirs to be ignored.
+            if split_line[-1] in ignored_dirs:
+
+                # If this is the case, simply pass on this listing.
+                pass
+
+            # Otherwise this is a valid directory to start a new crawl in.
+            else:
+
+                # Construct the new top directory to start a crawl.
+                target_dir = ''.join((top_dir, line.split()[-1], '/'))
+                # Start a new crawl at this directory.
+                crawl_ftp_dir(ftp, target_dir, parsing_function, ignored_dirs)
 
         # Otherwise the line is not a directory, and must be parsed.
         else:

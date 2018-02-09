@@ -21,3 +21,8 @@ def test_EnsemblDatabase(test_config):
 
     # Test Ensembl properties.
     print(f'\nEnsembl metadata URI: {ed.metadata_uri}')
+
+    # Start a crawl on the test directories.
+    ed.crawl(test_config['ensembl_config']['test_urls'])
+
+    print([x for x in ed.assemblies])

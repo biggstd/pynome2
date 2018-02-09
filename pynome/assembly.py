@@ -32,7 +32,8 @@ class Assembly(Base):
 
     __tablename__ = 'Assemblies'
 
-    def __init__(self, species, genus, assembly_id, intraspecific_name=None):
+    def __init__(self, species, genus, assembly_id, intraspecific_name=None,
+                 **kwargs):
         """Initialization of the Assembly model class. Builds the primary
         key to be used by the SQLite database.
 

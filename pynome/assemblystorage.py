@@ -12,7 +12,6 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 # Inter-package imports.
-from pynome.assemblydatabase import AssemblyDatabase
 from pynome.assembly import Base
 
 
@@ -37,12 +36,27 @@ class AssemblyStorage:
 
         # self.sqlite_session = sqlite_session
         self.irods_base_path = irods_base_path
+        Session = sessionmaker()
 
         # Prepare the SQLite engine and session.
         self.engine = create_engine(sqlite_path)
         # Create the tables.
         Base.metadata.create_all(self.engine)
-        self.session = sessionmaker(bind=self.engine)
+        self.session = Session(bind=self.engine)
+
+    def save_assembly(self, new_assembly):
+        """Go through the lists of Assemblies (within the list of sources)
+        and save each of those assembly objects to the SQLite database.
+        """
+        self.session.merge(new_assembly)
+        self.session.commit()
+
+    def save_assemblies(self, assemblies):
+        """
+        """
+        for source in self.sources:
+            for assembly in source.assemblies:
+                self.save_assembly(assembly)
 
     def crawl(self, assembly_database):
         """Call the crawl function on the given assembly_database.
