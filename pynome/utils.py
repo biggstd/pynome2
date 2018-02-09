@@ -64,8 +64,9 @@ def crawl_ftp_dir(ftp, top_dir, parsing_function, ignored_dirs):
             # If so, ensure it is not one of the dirs to be ignored.
             if split_line[-1] in ignored_dirs:
 
-                # If this is the case, simply pass on this listing.
-                pass
+                # If this is the case, simply ignore this entry and
+                # continue on this loop listing.
+                continue
 
             # Otherwise this is a valid directory to start a new crawl in.
             else:
@@ -74,6 +75,10 @@ def crawl_ftp_dir(ftp, top_dir, parsing_function, ignored_dirs):
                 target_dir = ''.join((top_dir, line.split()[-1], '/'))
                 # Start a new crawl at this directory.
                 crawl_ftp_dir(ftp, target_dir, parsing_function, ignored_dirs)
+
+        # Check to make sure the filename is not on the 'bad list'
+        # elif any(bw in split_line[-1] for bw in bad_words):
+        #     continue
 
         # Otherwise the line is not a directory, and must be parsed.
         else:

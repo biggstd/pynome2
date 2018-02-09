@@ -8,6 +8,7 @@
     "release_version": "release-38",
     "description": "The Ensembl genome annotation system.",
     "url": "http://ensemblgenomes.org/",
+    "bad_filenames": ["chromosome", "abinitio", "README", "CHECKSUMS"],
     "test_urls": [
       "/pub/release-38/metazoa/fasta/acyrthosiphon_pisum/",
       "/pub/release-38/metazoa/gff3/acyrthosiphon_pisum/"

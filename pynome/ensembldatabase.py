@@ -34,7 +34,7 @@ class EnsemblDatabase(AssemblyDatabase):
     """
 
     def __init__(self, ignored_dirs, data_types, ftp_url, kingdoms,
-                 release_version, **kwargs):
+                 release_version, bad_filenames, **kwargs):
         """The initialization function for EnsemblDatabase.
 
         Calls the constructor of AssemblyDatabase, and creates
@@ -68,6 +68,7 @@ class EnsemblDatabase(AssemblyDatabase):
         self.data_types = data_types
         self.kingdoms = kingdoms
         self.release_version = release_version
+        self.bad_filenames = bad_filenames
 
         # Define private attributes of the class.
         self._metadata_uri = None
@@ -132,15 +133,19 @@ class EnsemblDatabase(AssemblyDatabase):
         if parsed_line is None:
             return
 
+        # If the filename contains a 'bad word', we should exit the function.
+        if any(bw in parsed_line['file_name'] for bw in self.bad_filenames):
+            # This means that one of the undesired files has been located.
+            return
+
         # Examine the parsed output to determine if a GenomeAssembly object
         # should be created. Create a dictinoary of kwargs and filter off
         # any values of 'None', then use this dictinoaryto create a
         # new Assembly instance.
         if parsed_line['file_name'].endswith('dna.toplevel.fa.gz'):
-
+            # DEBUG: Fix the assembly id and filenames at this level.
             # Then this file is a fasta file.
             # Create the corresponding argument dictionary.
-            # TODO: Write a private function for this.
             new_assembly_kwargs = {
                 'species': parsed_line['species'],
                 'genus': parsed_line['genus'],
@@ -149,8 +154,7 @@ class EnsemblDatabase(AssemblyDatabase):
                 'version': self.release_version,
                 'fasta_remote_path': ''.join((
                     top_dir, parsed_line['file_name'])),
-                'fasta_remote_size': parsed_line['file_size'],
-            }
+                'fasta_remote_size': parsed_line['file_size']}
 
             # Create the new Assembly object.
             new_genome_assembly = Assembly(**new_assembly_kwargs)
@@ -162,9 +166,7 @@ class EnsemblDatabase(AssemblyDatabase):
             # Exit the if loop.
             return
 
-
         elif parsed_line['file_name'].endswith('gff3.gz'):
-
             # Then this file is a gff3 file.
             new_assembly_kwargs = {
                 'species': parsed_line['species'],
@@ -174,15 +176,10 @@ class EnsemblDatabase(AssemblyDatabase):
                 'version': self.release_version,
                 'gff3_remote_path': ''.join((
                     top_dir, parsed_line['file_name'])),
-                'gff3_remote_size': parsed_line['file_size'],
-            }
+                'gff3_remote_size': parsed_line['file_size']}
 
             # Create the new Assembly object.
             new_genome_assembly = Assembly(**new_assembly_kwargs)
-
-            # Save the new Assembly object to the database.
-            # TODO: This should also handle updates. ie. a single assembly
-            # object should contain both fasta and gff3 information.
 
             # Append it to the assemblies list, which is defined in the
             # AssemblyDatabase parent class.
@@ -234,11 +231,17 @@ class EnsemblDatabase(AssemblyDatabase):
         file_name = dir_list[-1]
         file_size = dir_list[4]
 
+        # If the filename contains a 'bad word', we should exit the function.
+        if any(bw in file_name for bw in self.bad_filenames):
+            # This means that one of the undesired files has been located.
+            return
+
         # Split the file_name by the first two '.'.
         # This will give a string that contains the genus and species informaiton,
         # and a string that contains the assembly name.
         try:
-            genus_species, assembly_name = file_name.split('.', 1)
+            name_list = file_name.split('.', 1)
+            genus_species, assembly_name = name_list[0], name_list[1]
         except:
             logging.warning(f'Unable to parse {file_name}')
             return
@@ -261,6 +264,7 @@ class EnsemblDatabase(AssemblyDatabase):
                 # intraspecific name is present, and should be the third
                 # element in the list to the end of the list.
                 intraspecific_name = '_'.join(gen_species_list[2:])
+                genus, species = genus_species.split('_', 1)
 
             # Otherwise there is no intraspecific name.
             else:
@@ -286,12 +290,8 @@ class EnsemblDatabase(AssemblyDatabase):
         }
 
     def crawl(self, uri_list=None):
-        """Begin the Ensembl-specific crawl at...
         """
-        # TODO: Comment docstring.
-        # TODO: Refactor this function. It should return a list or
-        # dictionary to the AssemblyStorage class for saving.
-
+        """
         # If no uri_list is provided, set it to the class property.
         if uri_list is None:
             uri_list = self.top_dirs
@@ -306,7 +306,7 @@ class EnsemblDatabase(AssemblyDatabase):
                 ftp=self.ftp,
                 top_dir=uri,
                 parsing_function=self.ensembl_file_parser,
-                ignored_dirs=self.ignored_dirs
+                ignored_dirs=self.ignored_dirs,
             )
 
         # Close the FTP connection.

@@ -7,8 +7,6 @@
 .. moduleauthors:: Tyler Biggs <biggstd@gmail.com>
 """
 
-# TODO: Refactor this to use the SQLAlchemy ORM declaration.
-
 # Import general python packages.
 import os
 
@@ -30,7 +28,23 @@ class Assembly(Base):
     index with `hisat2`.
     """
 
+    # Declare the SQLite table name to be used.
     __tablename__ = 'Assemblies'
+
+    # Declare public attributes, and assign them to the class instance.
+    # Columns declared in this way can be accessed as if they were
+    # self.column_name, that is, the same as other attributes.
+    base_filename = Column(String, primary_key=True)
+    species = Column(String)
+    genus = Column(String)
+    intraspecific_name = Column(String)
+    assembly_id = Column(String)
+    version = Column(String)
+    gff3_remote_path = Column(String)
+    gff3_remote_size = Column(Integer)
+    fasta_remote_path = Column(String)
+    fasta_remote_size = Column(Integer)
+    taxonomy_id = Column(String)
 
     def __init__(self, species, genus, assembly_id, intraspecific_name=None,
                  **kwargs):
@@ -49,38 +63,42 @@ class Assembly(Base):
         self.genus = genus
         self.assembly_id = assembly_id
         self.intraspecific_name = intraspecific_name
-
         self.base_filename = None
 
         if intraspecific_name is not None:
             name = '_'.join((
                 self.genus,
                 self.species,
-                self.intraspecific_name
-            ))
+                self.intraspecific_name))
+
         else:
             name = '_'.join((self.genus, self.species))
 
         self.base_filename = '-'.join((name, self.assembly_id))
 
-    # Declare public attributes, and assign them to the class instance.
-    # Columns declared in this way can be accessed as if they were
-    # self.column_name, that is, the same as other attributes.
-    base_filename = Column(String, primary_key=True)
-    species = Column(String)
-    genus = Column(String)
-    intraspecific_name = Column(String)
-    assembly_id = Column(String)
-    version = Column(String)
-    gff3_remote_path = Column(String)
-    gff3_remote_size = Column(Integer)
-    fasta_remote_path = Column(String)
-    fasta_remote_size = Column(Integer)
-    taxonomy_id = Column(String)
+        # Iterater through the kwargs parameter and set the SQLAlchemy
+        # table columns accordingly.
+        for key, value in kwargs.items():
+            setattr(self, key, value)
 
-    # Declare private attributes for use by properties.
-    # base_filename = Column(String)
-    # base_filepath = Column(String)
+    def __repr__(self):
+        """The string representation of an Assembly object.
+        """
+        out_str = (
+            '\n'
+            f'Base filename:         {self.base_filename}\n'
+            f'Species:               {self.species}\n'
+            f'Genus:                 {self.genus}\n'
+            f'Intraspecific Name:    {self.intraspecific_name}\n'
+            f'Assembly ID:           {self.assembly_id}\n'
+            f'Version:               {self.version}\n'
+            f'gff3 URI:              {self.gff3_remote_path}\n'
+            f'gff3 remote size:      {self.gff3_remote_size}\n'
+            f'fasta URI:             {self.fasta_remote_path}\n'
+            f'fasta remote size:     {self.fasta_remote_size}\n'
+            f'Taxonomy ID:           {self.taxonomy_id}\n'
+        )
+        return out_str
 
     @hybrid_property
     def base_filepath(self):

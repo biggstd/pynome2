@@ -45,6 +45,7 @@ def test_ed(test_config):
         ftp_url=test_config['ensembl_config']['ftp_url'],
         kingdoms=test_config['ensembl_config']['kingdoms'],
         release_version=test_config['ensembl_config']['release_version'],
+        bad_filenames=test_config['ensembl_config']['bad_filenames'],
     )
 
     return ed
