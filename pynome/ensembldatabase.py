@@ -10,6 +10,7 @@
 """
 
 # General Python imports.
+import os
 import ftplib
 import itertools
 import logging
@@ -81,12 +82,11 @@ class EnsemblDatabase(AssemblyDatabase):
         Builds the sub-directory of the Ensembl FTP server wherein the
         species.txt metadata file can be found.
         """
-        return '/'.join(('pub', self.release_version, 'species.txt'))
+        return '/'.join(('/pub', self.release_version, 'species.txt'))
 
     @property
     def top_dirs(self):
         """Getter function for the top_dirs property.
-            # Then this file is a fasta file.
 
         Builds a list of URIs that will act as the starting points for the
         crawling function.
@@ -142,15 +142,17 @@ class EnsemblDatabase(AssemblyDatabase):
         # should be created. Create a dictinoary of kwargs and filter off
         # any values of 'None', then use this dictinoaryto create a
         # new Assembly instance.
-        if parsed_line['file_name'].endswith('dna.toplevel.fa.gz'):
-            # DEBUG: Fix the assembly id and filenames at this level.
+        if parsed_line['file_name'].endswith('.dna.toplevel.fa.gz'):
             # Then this file is a fasta file.
+
+            # Remove the trailing filename from the file_name.
             # Create the corresponding argument dictionary.
             new_assembly_kwargs = {
                 'species': parsed_line['species'],
                 'genus': parsed_line['genus'],
                 'intraspecific_name': parsed_line['intraspecific_name'],
-                'assembly_id': parsed_line['assebly_name'],
+                'assembly_id': parsed_line['assebly_name'].replace(
+                    '.dna.toplevel.fa.gz', ''),
                 'version': self.release_version,
                 'fasta_remote_path': ''.join((
                     top_dir, parsed_line['file_name'])),
@@ -166,13 +168,16 @@ class EnsemblDatabase(AssemblyDatabase):
             # Exit the if loop.
             return
 
-        elif parsed_line['file_name'].endswith('gff3.gz'):
+        elif parsed_line['file_name'].endswith('.gff3.gz'):
             # Then this file is a gff3 file.
+            # Split by periods to remove the version and file extension.
+            assembly_id = parsed_line['assebly_name'].rsplit('.', 3)
+
             new_assembly_kwargs = {
                 'species': parsed_line['species'],
                 'genus': parsed_line['genus'],
                 'intraspecific_name': parsed_line['intraspecific_name'],
-                'assembly_id': parsed_line['assebly_name'],
+                'assembly_id': assembly_id[0],
                 'version': self.release_version,
                 'gff3_remote_path': ''.join((
                     top_dir, parsed_line['file_name'])),
@@ -308,6 +313,26 @@ class EnsemblDatabase(AssemblyDatabase):
                 parsing_function=self.ensembl_file_parser,
                 ignored_dirs=self.ignored_dirs,
             )
+
+        # Close the FTP connection.
+        self.ftp.quit()
+
+    def download_metadata(self, base_path=os.getcwd()):
+        """
+        """
+        # Build the path to the local file.
+        target_file = os.path.join(base_path, 'species.txt')
+
+        # Connect to the FTP server and login with anonymous credentials.
+        self.ftp.connect(self.ftp_url)
+        self.ftp.login()
+
+        # size_estimate = self.ftp.size(self.metadata_uri)
+
+        self.ftp.retrbinary(
+            cmd='RETR {}'.format(self.metadata_uri),
+            callback=open(target_file, 'wb').write
+        )
 
         # Close the FTP connection.
         self.ftp.quit()

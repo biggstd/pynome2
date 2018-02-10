@@ -86,7 +86,8 @@ class AssemblyStorage:
 
     def download_all(self):
         """Downloads all assemblies found within each source."""
-        pass
+        for src in self.sources:
+            pass
 
     def find_assembly(self):
         """Return an assembly, or list of assemblies that match given criteria.
