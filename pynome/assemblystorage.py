@@ -130,9 +130,13 @@ class AssemblyStorage:
             assembly.base_filepath,
             assembly.base_filename + '.gff3.gz')
 
-        cmd = ['gunzip', '-f', fasta_gz, gff3_gz]
-
+        cmd = ['gunzip', '-f', fasta_gz]
         subprocess.run(cmd)
+
+        cmd = ['gunzip', '-f', gff3_gz]
+        subprocess.run(cmd)
+
+
 
     def hisat_index(self, assembly):
         """
