@@ -7,6 +7,10 @@
 .. moduleauthor:: Tyler Biggs <biggstd@gmail.com>
 """
 
+# General Python imports.
+import os
+import subprocess
+
 # SQLAlchemy imports.
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -14,6 +18,7 @@ from sqlalchemy.orm import sessionmaker
 # Inter-package imports.
 from pynome.assembly import Base
 from pynome.assembly import Assembly
+from pynome.utils import cd
 
 
 class AssemblyStorage:
@@ -58,12 +63,18 @@ class AssemblyStorage:
             for assembly in source.assemblies:
                 self.save_assembly(assembly)
 
+    def update_assembly(self, assembly_base_filename, update_dict):
+        """
+        """
+        self.session.query(Assembly).filter_by(
+            base_filename=assembly_base_filename).update(update_dict)
+
+
     def query_local_assemblies(self):
         """
         """
         query = self.session.query(Assembly).all()
         return query
-
 
     def crawl(self, assembly_database, urls):
         """Call the crawl function on the given assembly_database.
@@ -71,8 +82,7 @@ class AssemblyStorage:
         This the assembly database should return something for this class
         to handle saving.
         """
-        # TODO: Impelment / plan me.
-        retrieved_genomes = assembly_database.crawl(urls)
+        assembly_database.crawl(urls)
 
     def crawl_all(self):
         """Call the crawl function on every AssemblyDatabase in sources.
@@ -104,3 +114,64 @@ class AssemblyStorage:
         """Pushes all the files within each source to an iRODs server.
         """
         pass
+
+    def decompress(self, assembly):
+        """Decompress (GNU Unzip) a single set of assembly files.
+
+        """
+
+        fasta_gz = os.path.join(
+            self.base_path,
+            assembly.base_filepath,
+            assembly.base_filename + '.fa.gz')
+
+        gff3_gz = os.path.join(
+            self.base_path,
+            assembly.base_filepath,
+            assembly.base_filename + '.gff3.gz')
+
+        cmd = ['gunzip', '-f', fasta_gz, gff3_gz]
+
+        subprocess.run(cmd)
+
+    def hisat_index(self, assembly):
+        """
+        """
+        file_path = os.path.join(
+            self.base_path,
+            assembly.base_filepath)
+
+        fasta_file = assembly.base_filename + '.fa'
+
+        with cd(file_path):
+
+            cmd = ['hisat2-build', '-f', fasta_file , assembly.base_filename]
+
+            subprocess.run(cmd)
+
+    def gtf(self, assembly):
+        """
+        """
+        gff3_file = os.path.join(
+            self.base_path,
+            assembly.base_filepath,
+            assembly.base_filename)
+
+        cmd = ['gffread', '-T', gff3_file + '.gff3', '-o', gff3_file + '.gtf']
+        subprocess.run(cmd)
+
+    def splice_site(self, assembly):
+        """
+        """
+        gft_file = os.path.join(
+            assembly.base_filepath,
+            assembly.base_filename + '.gtf')
+
+        splice_output = os.path.join(
+            assembly.base_filepath,
+            assembly.base_filename + '.Splice_sites')
+
+        with open(splice_output, 'w') as f:
+            cmd = ['hisat2_extract_splice_sites.py', gft_file],
+
+            subprocess.run(cmd, stdout=f)

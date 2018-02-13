@@ -9,8 +9,21 @@
 """
 
 # Import general Python packages.
+import os
 import json
 import logging
+from contextlib import contextmanager
+
+
+# https://stackoverflow.com/a/24176022/8715297
+@contextmanager
+def cd(newdir):
+    prevdir = os.getcwd()
+    os.chdir(os.path.expanduser(newdir))
+    try:
+        yield
+    finally:
+        os.chdir(prevdir)
 
 
 def read_json_config(config_file='pynome_config.json'):

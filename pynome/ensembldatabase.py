@@ -14,16 +14,12 @@ import os
 import ftplib
 import itertools
 import logging
+import pandas
 
 # Inter-package imports.
 from pynome.assembly import Assembly
 from pynome.assemblydatabase import AssemblyDatabase
 from pynome.utils import crawl_ftp_dir
-
-
-# Define module level function(s).
-# These functions are specific to the Ensembl module / use by the
-# EnsemblDatabase class, but do not require an instance of self to be run.
 
 
 # pylint: disable=too-many-instance-attributes
@@ -72,8 +68,9 @@ class EnsemblDatabase(AssemblyDatabase):
         self.bad_filenames = bad_filenames
 
         # Define private attributes of the class.
-        self._metadata_uri = None
-        self._top_dirs = None
+        # self._metadata_uri = None
+        # self._top_dirs = None
+        self.metadata_df = None
 
     @property
     def metadata_uri(self):
@@ -227,7 +224,6 @@ class EnsemblDatabase(AssemblyDatabase):
 
             ``<species>.<assembly>.<sequence type>.<id type>.<id>.fa.gz``
         """
-        logging.debug(f'parsing the line: {in_line}')
 
         # Split the input string by whitespace.
         dir_list = in_line.split()
@@ -241,11 +237,13 @@ class EnsemblDatabase(AssemblyDatabase):
             # This means that one of the undesired files has been located.
             return
 
+        logging.debug(f'parsing the line: {in_line}')
+
         # Split the file_name by the first two '.'.
-        # This will give a string that contains the genus and species informaiton,
-        # and a string that contains the assembly name.
+        # This will give a string that contains the genus and species
+        # informaiton, and a string that contains the assembly name.
         try:
-            name_list = file_name.split('.', 1)
+            name_list = file_name.split('.', 2)
             genus_species, assembly_name = name_list[0], name_list[1]
         except:
             logging.warning(f'Unable to parse {file_name}')
@@ -262,6 +260,10 @@ class EnsemblDatabase(AssemblyDatabase):
             # appear in the list. 'None' entries must be removed.
             gen_species_list = list(filter(None, gen_species_list))
 
+            genus = gen_species_list[0]
+            species = gen_species_list[1]
+
+
             # If the length of gen_species_list is greater than 2, an
             # intraspecific name is present.
             if len(gen_species_list) > 2:
@@ -269,7 +271,7 @@ class EnsemblDatabase(AssemblyDatabase):
                 # intraspecific name is present, and should be the third
                 # element in the list to the end of the list.
                 intraspecific_name = '_'.join(gen_species_list[2:])
-                genus, species = genus_species.split('_', 1)
+
 
             # Otherwise there is no intraspecific name.
             else:
@@ -278,8 +280,8 @@ class EnsemblDatabase(AssemblyDatabase):
                 intraspecific_name = None
 
                 # Get the genus and species from the gen_species_list.
-                # Since there is no intraspecific name, simply split the list once.
-                genus, species = genus_species.split('_', 1)
+                # Since there is no intraspecific name, split the list once.
+                # genus, species = genus_species.split('_', 1)
 
         except Exception as error:
             print('Unable to parse ensembl ftp filename.', error)
@@ -320,8 +322,20 @@ class EnsemblDatabase(AssemblyDatabase):
     def download_metadata(self, base_path=os.getcwd()):
         """
         """
+
         # Build the path to the local file.
         target_file = os.path.join(base_path, 'species.txt')
+
+        # Check if the file already exists, and that it is not 0 bytes.
+        if os.path.isfile(target_file) and os.path.getsize(target_file) > 0:
+            # Then the file is already there, and we can quit this function
+            # early. We still need to read the csv to get the dataframe.
+            self.metadata_df = pandas.read_csv(
+                filepath_or_buffer=target_file,
+                error_bad_lines=False,
+                sep="\t",
+                index_col=False)
+            return
 
         # Connect to the FTP server and login with anonymous credentials.
         self.ftp.connect(self.ftp_url)
@@ -336,3 +350,94 @@ class EnsemblDatabase(AssemblyDatabase):
 
         # Close the FTP connection.
         self.ftp.quit()
+
+        # Read the species.txt metadata file, and assign it to a dataframe
+        # attribute of the EnsemblDatabase class.
+        self.metadata_df = pandas.read_csv(
+            filepath_or_buffer=target_file,
+            error_bad_lines=False,
+            sep="\t",
+            index_col=False)
+
+    def download(self, assemblies, base_path=os.getcwd()):
+        """
+        """
+        # Connect to the FTP server and login with anonymous credentials.
+        self.ftp.connect(self.ftp_url)
+        self.ftp.login()
+
+        for gen in assemblies:
+
+            # Create the base_path for this genome assembly.
+            curr_base_path = os.path.join(base_path, gen.base_filepath)
+
+            # Create the intermediary folders if they do not exist.
+            if not os.path.exists(curr_base_path):
+                os.makedirs(curr_base_path)
+
+            # Create the local filenames.
+            new_fasta = os.path.join(
+                curr_base_path,
+                gen.base_filename + '.gff3.gz')
+
+            new_gff3 = os.path.join(
+                curr_base_path,
+                gen.base_filename + '.fa.gz')
+
+            # Download the desired files.
+            self.ftp.retrbinary(
+                cmd=f'RETR {gen.fasta_remote_path}',
+                callback=open(new_fasta, 'wb').write)
+
+            self.ftp.retrbinary(
+                cmd=f'RETR {gen.gff3_remote_path}',
+                callback=open(new_gff3, 'wb').write)
+
+        # Close the FTP connection.
+        self.ftp.quit()
+
+    def find_taxonomy_id(self, species):
+        """
+        """
+
+        # Search the pandas dataframe with the metadata parsed from species.txt.
+        taxonomy_id = self.metadata_df[
+            self.metadata_df['species'].str.match(
+                species.lower())]['taxonomy_id'].values
+
+        # Check if this actually found a value, if it did not, log the failure.
+        if taxonomy_id.size == 0:
+            logging.warning(
+                'Unable to find a taxonomy id for {}'.format(species))
+            return None
+
+        return str(taxonomy_id[0])
+
+    def add_taxonomy_ids(self, assemblies=None):
+        """
+        """
+        # Output list holder.
+        tax_update_list = list()
+
+        # Iterate through the list of assemblies, if none are provided, use
+        # those found in the self.assemblies list.
+        if assemblies is None:
+            assemblies = self.assemblies
+
+        for gen in assemblies:
+
+            # Search the metadata dataframe for a matching entry.
+            tax_id = self.find_taxonomy_id(gen.taxonomy_name)
+
+            # If `None` is returned from self.find_taxonomy_id, continue
+            # with the loop without creating an update dictionary.
+            if tax_id is None:
+                continue
+
+            # Otherwise, create the update dictionary and append it to the
+            # output list.
+            update_dict = {'taxonomy_id': tax_id}
+            tax_update_list.append(
+                (gen.base_filename, update_dict))
+
+        return tax_update_list

@@ -10,11 +10,15 @@
     "url": "http://ensemblgenomes.org/",
     "bad_filenames": ["chromosome", "abinitio", "README", "CHECKSUMS"],
     "test_urls": [
-      "/pub/release-38/metazoa/fasta/acyrthosiphon_pisum/",
-      "/pub/release-38/metazoa/gff3/acyrthosiphon_pisum/"
+      "/pub/fungi/release-38/fasta/fungi_ascomycota1_collection/_candida_glabrata/",
+      "/pub/fungi/release-38/fasta/fungi_ascomycota1_collection/acremonium_chrysogenum_atcc_11550/",
+      "/pub/fungi/release-38/gff3/fungi_ascomycota1_collection/acremonium_chrysogenum_atcc_11550/",
+      "/pub/fungi/release-38/gff3/fungi_ascomycota1_collection/_candida_glabrata/"
     ]
   },
   "storage_config":{
-    "irods_base_path":"/ScidasZone/Sysbio/genomes/"
+    "irods_base_path": "/ScidasZone/Sysbio/genomes/",
+    "sqlite_path": "sqlite:///:memory:",
+    "base_path": "/media/tylerbiggs/genomic/genTest"
   }
 }

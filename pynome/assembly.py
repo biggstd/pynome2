@@ -9,6 +9,7 @@
 
 # Import general python packages.
 import os
+import logging
 
 # SQLAlchemy imports.
 from sqlalchemy import Column, Integer, String
@@ -35,6 +36,7 @@ class Assembly(Base):
     # Columns declared in this way can be accessed as if they were
     # self.column_name, that is, the same as other attributes.
     base_filename = Column(String, primary_key=True)
+    base_filepath = Column(String)
     species = Column(String)
     genus = Column(String)
     intraspecific_name = Column(String)
@@ -44,6 +46,7 @@ class Assembly(Base):
     gff3_remote_size = Column(Integer)
     fasta_remote_path = Column(String)
     fasta_remote_size = Column(Integer)
+    taxonomy_name = Column(String)
     taxonomy_id = Column(String)
 
     def __init__(self, species, genus, assembly_id, intraspecific_name=None,
@@ -75,6 +78,10 @@ class Assembly(Base):
             name = '_'.join((self.genus, self.species))
 
         self.base_filename = '-'.join((name, self.assembly_id))
+        self.taxonomy_name = name
+
+        self.base_filepath = os.path.join(name, self.assembly_id)
+        # logging.warning(f'base filepath: {self.base_filepath}')
 
         # Iterater through the kwargs parameter and set the SQLAlchemy
         # table columns accordingly.
@@ -87,6 +94,7 @@ class Assembly(Base):
         out_str = (
             '\n'
             f'Base filename:         {self.base_filename}\n'
+            f'Base filepath:         {self.base_filepath}\n'
             f'Species:               {self.species}\n'
             f'Genus:                 {self.genus}\n'
             f'Intraspecific Name:    {self.intraspecific_name}\n'
@@ -99,15 +107,6 @@ class Assembly(Base):
             f'Taxonomy ID:           {self.taxonomy_id}\n'
         )
         return out_str
-
-    @hybrid_property
-    def base_filepath(self):
-        """Getter function for the base_filepath of this assembly.
-        This is the path used to sort / save local assembly files.
-        """
-        # Use the os path module to ensure the path is
-        # generated correctly for the system we are on.
-        os.path.join(self.base_filename, self.assembly_id)
 
     def update(self):
         """Update the current assembly with new information.
