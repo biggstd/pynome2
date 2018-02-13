@@ -57,5 +57,5 @@ def test_AssemblyStorage(test_config, test_ed):
     for a in found_genomes:
         test_assembly_storage.decompress(a)
         test_assembly_storage.hisat_index(a)
-        # test_assembly_storage.gtf(a)
-        # test_assembly_storage.splice_site(a)
+        test_assembly_storage.gtf(a)
+        test_assembly_storage.splice_site(a)

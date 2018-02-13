@@ -1,3 +1,4 @@
 {
+  "tests/test_assemblystorage.py::test_AssemblyStorage": true,
   "tests/test_cli.py::test_pynome_default": true
 }

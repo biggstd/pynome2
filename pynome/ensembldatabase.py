@@ -376,11 +376,11 @@ class EnsemblDatabase(AssemblyDatabase):
                 os.makedirs(curr_base_path)
 
             # Create the local filenames.
-            new_fasta = os.path.join(
+            new_gff3 = os.path.join(
                 curr_base_path,
                 gen.base_filename + '.gff3.gz')
 
-            new_gff3 = os.path.join(
+            new_fasta = os.path.join(
                 curr_base_path,
                 gen.base_filename + '.fa.gz')
 

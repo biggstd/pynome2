@@ -168,14 +168,16 @@ class AssemblyStorage:
         """
         """
         gft_file = os.path.join(
+            self.base_path,
             assembly.base_filepath,
             assembly.base_filename + '.gtf')
 
         splice_output = os.path.join(
+            self.base_path,
             assembly.base_filepath,
             assembly.base_filename + '.Splice_sites')
 
         with open(splice_output, 'w') as f:
-            cmd = ['hisat2_extract_splice_sites.py', gft_file],
+            cmd = ['hisat2_extract_splice_sites.py', gft_file]
 
             subprocess.run(cmd, stdout=f)
