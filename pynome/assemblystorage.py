@@ -29,12 +29,19 @@ class AssemblyStorage:
 
     def __init__(
             self,
-            sqlite_path,
+            sqlite_path=None,
             base_path=None,
             irods_base_path=None):
         """Initialization of the AssemblyStorage class.
         """
         # TODO: Comment the init function paramaters.
+
+        # If the sqlite path is not give, create a temporary one in memory.
+        # This database will not be saved! Although files can still
+        # be downloaded and processed.
+        if sqlite_path is None:
+            sqlite_path = "sqlite:///:memory:"
+
         # Define the public attributes of the class.
         self.base_path = base_path
         self.sources = list()

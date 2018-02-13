@@ -8,7 +8,10 @@ from pynome.assembly import Assembly
 
 
 def test_AssemblyStorage(test_config, test_ed):
-    """Test the AssemblyStorage class."""
+    """Test the AssemblyStorage class.
+
+    This is the primary test case for now.
+    """
 
     # Initialize an instance of AssemblyStorage with the test session.
     test_assembly_storage = AssemblyStorage(

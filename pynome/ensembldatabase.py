@@ -272,7 +272,6 @@ class EnsemblDatabase(AssemblyDatabase):
                 # element in the list to the end of the list.
                 intraspecific_name = '_'.join(gen_species_list[2:])
 
-
             # Otherwise there is no intraspecific name.
             else:
 
