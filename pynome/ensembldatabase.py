@@ -337,6 +337,9 @@ class EnsemblDatabase(AssemblyDatabase):
             return
 
         # Connect to the FTP server and login with anonymous credentials.
+        # TODO: Change the FTP connection to use a context manager, then
+        # refactor this function so that progress bars can be more easily
+        # implemented by the cli.
         self.ftp.connect(self.ftp_url)
         self.ftp.login()
 
@@ -358,9 +361,14 @@ class EnsemblDatabase(AssemblyDatabase):
             sep="\t",
             index_col=False)
 
-    def download(self, assemblies, base_path=os.getcwd()):
+    def download(self, assemblies, base_path=None):
         """
         """
+        # If a base_path is not given, create a folder called 'genomes',
+        # and place it in the current directory.
+        if base_path is None:
+            base_path = os.path.join(os.getcwd(), 'genomes')
+
         # Connect to the FTP server and login with anonymous credentials.
         self.ftp.connect(self.ftp_url)
         self.ftp.login()

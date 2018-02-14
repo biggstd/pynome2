@@ -36,11 +36,9 @@ class AssemblyStorage:
         """
         # TODO: Comment the init function paramaters.
 
-        # If the sqlite path is not give, create a temporary one in memory.
-        # This database will not be saved! Although files can still
-        # be downloaded and processed.
+        # If the sqlite path is not give, create one in the current directory.
         if sqlite_path is None:
-            sqlite_path = "sqlite:///:memory:"
+            sqlite_path = "sqlite:///genomes.db"
 
         # Define the public attributes of the class.
         self.base_path = base_path
@@ -148,6 +146,7 @@ class AssemblyStorage:
     def hisat_index(self, assembly):
         """
         """
+        # TODO: Remove cd handler and its use. Not needed.
         file_path = os.path.join(
             self.base_path,
             assembly.base_filepath)
@@ -156,7 +155,7 @@ class AssemblyStorage:
 
         with cd(file_path):
 
-            cmd = ['hisat2-build', '-f', fasta_file , assembly.base_filename]
+            cmd = ['hisat2-build', '-f', fasta_file, assembly.base_filename]
 
             subprocess.run(cmd)
 
