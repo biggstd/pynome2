@@ -170,21 +170,32 @@ class AssemblyStorage:
 
         This function calls `hisat2-build -f` from the command line.
 
+        See the HISAT2 manual for more:
+        https://ccb.jhu.edu/software/hisat2/manual.shtml#running-hisat2
+
         :param assembly:
             An assembly object stored within the local SQLite database.
         """
 
+        # Construct the path to the input file.
         file_path = os.path.join(
             self.base_path,
             assembly.base_filepath,
             assembly.base_filename + '.fa')
 
+        # Construct the base filename of the output files.
         out_base = os.path.join(
             self.base_path,
             assembly.base_filepath,
             assembly.base_filename)
 
-        cmd = ['hisat2-build', '-f', file_path, out_base]
+        # Count the number of processors available to HISAT2. This value must
+        # be a string for it to function within subprocess.run().
+        # TODO: Make this value an option within the .json config file.
+        numb_proc = str(os.cpu_count())
+
+        cmd = ['hisat2-build', '--quiet', '-p', numb_proc,
+               '-f', file_path, out_base]
 
         subprocess.run(cmd)
 

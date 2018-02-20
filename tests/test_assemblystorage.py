@@ -55,7 +55,7 @@ def test_AssemblyStorage(test_config, test_ed):
         test_config["storage_config"]["base_path"])
 
     # Display all entries.
-    print([a for a in found_genomes])
+    # print([a for a in found_genomes])
 
     for a in found_genomes:
         test_assembly_storage.decompress(a)

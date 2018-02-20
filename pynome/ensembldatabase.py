@@ -15,6 +15,7 @@ import ftplib
 import itertools
 import logging
 import pandas
+from tqdm import tqdm
 
 # Inter-package imports.
 from pynome.assembly import Assembly
@@ -382,7 +383,7 @@ class EnsemblDatabase(AssemblyDatabase):
         self.ftp.connect(self.ftp_url)
         self.ftp.login()
 
-        for gen in assemblies:
+        for gen in tqdm(assemblies):
 
             # Create the base_path for this genome assembly.
             curr_base_path = os.path.join(base_path, gen.base_filepath)

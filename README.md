@@ -11,6 +11,7 @@ download desired genome assembly files from the
 - [x] Add metadata json files - one with pynome info, the other with ensembl info.
 - [x] Factor out cd from prepare methods.
 - [x] Docstring for prepare methods.
+- [x] Update hisat2 indexing to use more than one CPU.
 - [ ] Change use of FTP to context manager and re-factor download functions.
 - [ ] Consider API linkage to the crawl command.
 - [ ] assembly.delete()
