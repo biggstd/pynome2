@@ -32,7 +32,7 @@ class EnsemblDatabase(AssemblyDatabase):
     """
 
     def __init__(self, ignored_dirs, data_types, ftp_url, kingdoms,
-                 release_version, bad_filenames, **kwargs):
+                 release_version, bad_filenames, crawl_urls=None, **kwargs):
         """The initialization function for EnsemblDatabase.
 
         Calls the constructor of AssemblyDatabase, and creates
@@ -60,6 +60,10 @@ class EnsemblDatabase(AssemblyDatabase):
         :param bad_filenames:
             A list of files to be ignored by the crawl utility.
 
+        :param [crawl_urls]:
+            An optinal list of urls. If given these will be used as starting
+            points for calls to crawl().
+
         :param [**kwargs]:
             Remaining arguments are passed to AssemblyDatabase.
         """
@@ -76,11 +80,11 @@ class EnsemblDatabase(AssemblyDatabase):
         self.kingdoms = kingdoms
         self.release_version = release_version
         self.bad_filenames = bad_filenames
+        self.crawl_urls = crawl_urls
 
         # Define private attributes of the class.
-        # self._metadata_uri = None
-        # self._top_dirs = None
         self.metadata_df = None
+        self.database_name = 'ensembl'
 
     @property
     def metadata_uri(self):
@@ -155,6 +159,7 @@ class EnsemblDatabase(AssemblyDatabase):
             # Remove the trailing filename from the file_name.
             # Create the corresponding argument dictionary.
             new_assembly_kwargs = {
+                'source_database': self.database_name,
                 'species': parsed_line['species'],
                 'genus': parsed_line['genus'],
                 'intraspecific_name': parsed_line['intraspecific_name'],
@@ -181,6 +186,7 @@ class EnsemblDatabase(AssemblyDatabase):
             assembly_id = parsed_line['assebly_name'].rsplit('.', 3)
 
             new_assembly_kwargs = {
+                'source_database': self.database_name,
                 'species': parsed_line['species'],
                 'genus': parsed_line['genus'],
                 'intraspecific_name': parsed_line['intraspecific_name'],
@@ -317,7 +323,7 @@ class EnsemblDatabase(AssemblyDatabase):
         self.ftp.login()
 
         # Start a crawl at each uri.
-        for uri in uri_list:
+        for uri in tqdm(uri_list, desc='Crawling. This make take some time.'):
             crawl_ftp_dir(
                 ftp=self.ftp,
                 top_dir=uri,
@@ -383,7 +389,7 @@ class EnsemblDatabase(AssemblyDatabase):
         self.ftp.connect(self.ftp_url)
         self.ftp.login()
 
-        for gen in tqdm(assemblies):
+        for gen in tqdm(assemblies, desc='Downloading Assemblies...'):
 
             # Create the base_path for this genome assembly.
             curr_base_path = os.path.join(base_path, gen.base_filepath)

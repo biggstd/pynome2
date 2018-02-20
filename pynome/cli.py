@@ -62,6 +62,8 @@ def pynome(ctx):
         kingdoms=ctx.obj['config']['ensembl_config']['kingdoms'],
         release_version=ctx.obj['config']['ensembl_config']['release_version'],
         bad_filenames=ctx.obj['config']['ensembl_config']['bad_filenames'],
+        # Optional values.
+        crawl_urls=ctx.obj['config']['ensembl_config'].get('crawl_urls')
     )
 
     # Add the ensembl_database to the source list of assembly_storage.

@@ -48,6 +48,7 @@ class Assembly(Base):
     fasta_remote_size = Column(Integer)
     taxonomy_name = Column(String)
     taxonomy_id = Column(String)
+    source_database = Column(String)
 
     def __init__(self, species, genus, assembly_id, intraspecific_name=None,
                  **kwargs):
@@ -109,22 +110,6 @@ class Assembly(Base):
             f'fasta URI:             {self.fasta_remote_path}\n'
             f'fasta remote size:     {self.fasta_remote_size}\n'
             f'Taxonomy ID:           {self.taxonomy_id}\n'
+            f'Source Database:       {self.source_database}\n'
         )
         return out_str
-
-    def update(self):
-        """Update the current assembly with new information.
-        TODO: Determine what to do with new files to download.
-        """
-        pass
-
-    def delete(self):
-        """Delete the assembly.
-        """
-        pass
-
-    def prepare(self):
-        """Prepare the assembly for downstream use. This creates
-        splice sites, hisat2 indexes and converts the gff3 to a gtf.
-        """
-        pass

@@ -46,6 +46,8 @@ def test_ed(test_config):
         kingdoms=test_config['ensembl_config']['kingdoms'],
         release_version=test_config['ensembl_config']['release_version'],
         bad_filenames=test_config['ensembl_config']['bad_filenames'],
+        # Optional values.
+        crawl_urls=test_config['ensembl_config'].get('crawl_urls')
     )
 
     return ed

@@ -2,7 +2,7 @@
 
 """
 # import logging
-#
+
 from pynome.assemblystorage import AssemblyStorage
 from pynome.assembly import Assembly
 
@@ -19,15 +19,15 @@ def test_AssemblyStorage(test_config, test_ed):
         base_path=test_config["storage_config"]["base_path"])
 
     # Add the test EnsemblDatabase fixture to the sources list.
-    test_assembly_storage.sources.append(test_ed)
+    test_assembly_storage.add_source(test_ed)
 
     # Initiate a crawl through the AssemblyStorage API.
     test_assembly_storage.crawl(
-        test_ed, test_config['ensembl_config']['test_urls'])
+        'ensembl',
+        test_config['ensembl_config'].get('crawl_urls'))
 
     # Download the metadata file.
-    # TODO: Consider API linkage to the crawl command.
-    test_ed.download_metadata()
+    test_assembly_storage.sources['ensembl'].download_metadata()
 
     # Save those assemblies found.
     test_assembly_storage.save_assemblies()
@@ -37,8 +37,8 @@ def test_AssemblyStorage(test_config, test_ed):
 
     # Search for matching taxonomy IDs within the species.txt metadata file,
     # and update the assemblies with that information.
-    tax_id_update = test_ed.add_taxonomy_ids(assemblies_from_crawl)
-
+    tax_id_update = test_assembly_storage.sources['ensembl'].add_taxonomy_ids(
+        assemblies_from_crawl)
 
     # Save (update) each of these assembly ids.
     for pk, update_dict in tax_id_update:
@@ -49,13 +49,17 @@ def test_AssemblyStorage(test_config, test_ed):
 
     # print([a for a in found_genomes])
 
-    # Download these found genome files.
-    test_ed.download(
-        found_genomes,
-        test_config["storage_config"]["base_path"])
+    # test_assembly_storage.download(found_genomes)
+    test_assembly_storage.download_all()
 
     # Display all entries.
     # print([a for a in found_genomes])
+
+    test_query = test_assembly_storage.query_local_assemblies_by(
+        'species', 'glabrata'
+    )
+
+    print(test_query)
 
     for a in found_genomes:
         test_assembly_storage.decompress(a)

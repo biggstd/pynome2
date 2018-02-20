@@ -10,6 +10,7 @@
 # General Python imports.
 import os
 import subprocess
+import collections
 
 # SQLAlchemy imports.
 from sqlalchemy import create_engine
@@ -61,7 +62,7 @@ class AssemblyStorage:
         self.base_path = base_path
 
         # Define the public attributes of the class.
-        self.sources = list()
+        self.sources = dict()
 
         # self.sqlite_session = sqlite_session
         self.irods_base_path = irods_base_path
@@ -85,31 +86,50 @@ class AssemblyStorage:
     def save_assemblies(self):
         """Save a list of assembly objects to the SQLite database.
         """
-        for source in self.sources:
+        for src_name, source in self.sources.items():
             for assembly in source.assemblies:
                 self.save_assembly(assembly)
 
     def update_assembly(self, assembly_base_filename, update_dict):
-        """
-        TODO: Write test for this function, currently untested.
+        """Update the SQLite entry of a given assembly with update_dict.
+
+        :param assembly_base_filename:
+            The base filename and primary key of an assembly.
+
+        :param update_dict:
+            A dictionary with values to update the SQLite table with.
         """
         self.session.query(Assembly).filter_by(
             base_filename=assembly_base_filename).update(update_dict)
 
-
     def query_local_assemblies(self):
-        """
+        """Queries the local SQLite database, and returns a list of all
+        assemblies therein.
         """
         query = self.session.query(Assembly).all()
         return query
 
-    def crawl(self, assembly_database, urls):
+    def query_local_assemblies_by(self, field, value):
+        """Query the local SQLite database and return results filtered by the
+        given column name (filter) and value.
+
+        :param field:
+            The column to be searched. Possible values: species, genus,
+            intraspecific_name, assembly_id.
+
+        :param value:
+        """
+        query = self.session.query(Assembly).filter(
+            getattr(Assembly, field) == value).all()
+        return query
+
+    def crawl(self, assembly_database, urls=None):
         """Call the crawl function on the given assembly_database.
 
         This the assembly database should return something for this class
         to handle saving.
         """
-        assembly_database.crawl(urls)
+        self.sources[assembly_database].crawl(urls)
 
     def crawl_all(self):
         """Call the crawl function on every AssemblyDatabase in sources.
@@ -117,25 +137,54 @@ class AssemblyStorage:
         for source in self.sources:
             source.crawl()
 
-    def download(self, assembly):
-        """Download a specific assembly."""
-        pass
+    def download(self, assemblies):
+        """Download a specific set of assemblies from a given list.
+
+        :param assemblies:
+             A list of Pynome Assembly objects.
+        """
+        # Create a dictionary to hold assemblies from different remote sources.
+        download_dict = collections.defaultdict(list)
+
+        # Iterate through the assemblies provided and build a list for each
+        # remote database source encountered.
+        for ga in assemblies:
+
+            # Get the name of the source database of the given assembly.
+            source_db = ga.source_database
+
+            # Append it to the corresponding list within download_dict.
+            download_dict[source_db].append(ga)
+
+        # Iterate through the dictionary entries.
+        for src, assembly_list in download_dict.items():
+
+            # Get the corresponding database entry from the sources dictionary.
+            assembly_db = self.sources[src]
+
+            # Use the database download function to download the assembly.
+            assembly_db.download(assembly_list, self.base_path)
 
     def download_all(self):
-        """Downloads all assemblies found within each source."""
-        for src in self.sources:
-            pass
-
-    def find_assembly(self):
-        """Return an assembly, or list of assemblies that match given criteria.
-
-        This is a local query.
+        """Downloads all assemblies found within each source. The assemblies
+        to be downloaded must be present in the local SQLite database.
         """
-        pass
+
+        # For each source, find all assemblies that belong.
+        for src_name, source in self.sources.items():
+
+            src_assemblies = self.query_local_assemblies_by(
+                'source_database', src_name)
+
+            source.download(src_assemblies, self.base_path)
 
     def add_source(self, new_source):
-        """Append a new source to the sources list."""
-        pass
+        """Append a new source to the sources dictionary."""
+        # Get the name attribute of this new database.
+        db_name = new_source.database_name
+
+        # Add the new database to the source dictionary using its name as a key.
+        self.sources[db_name] = new_source
 
     def push_irods(self):
         """Pushes all the files within each source to an iRODs server.

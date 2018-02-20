@@ -12,27 +12,28 @@ download desired genome assembly files from the
 - [x] Factor out cd from prepare methods.
 - [x] Docstring for prepare methods.
 - [x] Update hisat2 indexing to use more than one CPU.
-- [ ] Change use of FTP to context manager and re-factor download functions.
-- [ ] Consider API linkage to the crawl command.
-- [ ] assembly.delete()
-- [ ] assembly.prepare()
-- [ ] assembly.update()
-- [ ] assemblystorage.update() -- test function.
-- [ ] assemblystorage.download()
-- [ ] assemblystorage.find_assembly()
-- [ ] assemblystorage.add_source()
-- [ ] assemblystorage.push_irods()
-- [ ] Create api for selecting assemblies by:
+- [x] Consider API linkage to the crawl command.
+- [x] assembly.delete() -- move to AssemblyStorage
+- [x] assembly.prepare() -- move to AssemblyStorage
+- [x] assembly.update() -- move to AssemblyStorage
+- [x] Create api for selecting assemblies by:
   + Species
   + Genus
   + Intraspecific_name
   + Assembly_ID
+- [x] Add a column that records the source remote database.
+- [x] assemblystorage.download()
+- [x] assemblystorage.query_local_assemblies_by()
+- [x] assemblystorage.add_source()
+- [ ] assemblystorage.prepare()
+- [ ] assemblystorage.push_irods()
 - [ ] Consider the changes needed to the CLI for SRA functionality.
 - [ ] cli.push_irods()
+- [ ] Create Docker image.
+- [ ] Add Travis-CI integration.
 
 
 ## Installation
 
 - [ ] Go over setup.py
 - [ ] Write instructions.
-- [ ] Create Docker image.
