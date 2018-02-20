@@ -55,12 +55,16 @@ class Assembly(Base):
         key to be used by the SQLite database.
 
         :param species:
+            The species name as a string.
 
         :param genus:
+            The genus name as a string.
 
         :param assembly_id:
+            The assembly identifier, as labeled from the assembly file source.
 
-        :param intraspecific_name:
+        :param [intraspecific_name]:
+            An intraspecific name of the species.
         """
         self.species = species
         self.genus = genus

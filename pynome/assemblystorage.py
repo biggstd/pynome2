@@ -33,15 +33,35 @@ class AssemblyStorage:
             base_path=None,
             irods_base_path=None):
         """Initialization of the AssemblyStorage class.
+
+        :param [sqlite_path]:
+            The local path to the sqlite database used to store metadata of
+            the found genome assemblies. If no value is given, this defaults
+            to `"sqlite:///genomes.db"`.
+
+        :param base_path:
+            The local filepath where Pynome will save its files. If no value
+            is given, the file "Genomes" will be created and used within the
+            current working directory.
+
+        :param irods_base_path:
+            The base path to be used with iRODs integration.
         """
-        # TODO: Comment the init function paramaters.
 
         # If the sqlite path is not give, create one in the current directory.
         if sqlite_path is None:
             sqlite_path = "sqlite:///genomes.db"
 
-        # Define the public attributes of the class.
+        self.sqlite_path = sqlite_path
+
+        # If no base_path is given, creata a folder named "Genomes" in
+        # the current working directory for use as the base_path.
+        if base_path is None:
+            base_path = 'genomes'
+
         self.base_path = base_path
+
+        # Define the public attributes of the class.
         self.sources = list()
 
         # self.sqlite_session = sqlite_session
@@ -55,14 +75,16 @@ class AssemblyStorage:
         self.session = Session(bind=self.engine)
 
     def save_assembly(self, new_assembly):
-        """Go through the lists of Assemblies (within the list of sources)
-        and save each of those assembly objects to the SQLite database.
+        """Save a given assembly object to the SQLite database.
+
+        :param new_assembly:
+            A pynome.Assembly object to be saved in the local sql database.
         """
         self.session.merge(new_assembly)
         self.session.commit()
 
     def save_assemblies(self):
-        """
+        """Save a list of assembly objects to the SQLite database.
         """
         for source in self.sources:
             for assembly in source.assemblies:
@@ -70,6 +92,7 @@ class AssemblyStorage:
 
     def update_assembly(self, assembly_base_filename, update_dict):
         """
+        TODO: Write test for this function, currently untested.
         """
         self.session.query(Assembly).filter_by(
             base_filename=assembly_base_filename).update(update_dict)
@@ -140,8 +163,6 @@ class AssemblyStorage:
 
         cmd = ['gunzip', '-f', gff3_gz]
         subprocess.run(cmd)
-
-
 
     def hisat_index(self, assembly):
         """

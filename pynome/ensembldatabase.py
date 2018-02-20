@@ -52,6 +52,15 @@ class EnsemblDatabase(AssemblyDatabase):
             A list of genome kingdoms to be used in the construction of
             starting url paths. Available options include ['fungi', 'metazoa',
             'plants', 'protists']
+
+        :param release_version:
+            The release version of Ensembl to be used.
+
+        :param bad_filenames:
+            A list of files to be ignored by the crawl utility.
+
+        :param [**kwargs]:
+            Remaining arguments are passed to AssemblyDatabase.
         """
 
         # Call the parent constructor / __init__ function, pass keywords
@@ -403,25 +412,40 @@ class EnsemblDatabase(AssemblyDatabase):
         # Close the FTP connection.
         self.ftp.quit()
 
-    def find_taxonomy_id(self, species):
-        """
+    def find_taxonomy_id(self, tax_name):
+        """Searches the self.metadata_df attribute for a matching taxonomy ID.
+
+        :param tax_name:
+            A string representing the taxonomic name of an assembly.
+
+        :returns:
+            A string of the found taxnomy ID, or `None`.
         """
 
         # Search the pandas dataframe with the metadata parsed from species.txt.
         taxonomy_id = self.metadata_df[
             self.metadata_df['species'].str.match(
-                species.lower())]['taxonomy_id'].values
+                tax_name.lower())]['taxonomy_id'].values
 
         # Check if this actually found a value, if it did not, log the failure.
         if taxonomy_id.size == 0:
             logging.warning(
-                'Unable to find a taxonomy id for {}'.format(species))
+                'Unable to find a taxonomy id for {}'.format(tax_name))
             return None
 
         return str(taxonomy_id[0])
 
     def add_taxonomy_ids(self, assemblies=None):
-        """
+        """Calls `find_taxonomy_id` on a list of assemblies, and returns a list
+        of tuples containing the base_filename and an update dictionary.
+
+        :param [assemblies=None]:
+            If no list of assembly objects is given, the contents of
+            self.assemblies is used instead.
+
+        :returns:
+            A list of tuples, containing the assemblies base filename and an
+            update dictionary containing the newly found taxnomy_ID.
         """
         # Output list holder.
         tax_update_list = list()
