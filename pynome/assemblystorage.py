@@ -18,7 +18,6 @@ from sqlalchemy.orm import sessionmaker
 # Inter-package imports.
 from pynome.assembly import Base
 from pynome.assembly import Assembly
-from pynome.utils import cd
 
 
 class AssemblyStorage:
@@ -146,6 +145,8 @@ class AssemblyStorage:
     def decompress(self, assembly):
         """Decompress (GNU Unzip) a single set of assembly files.
 
+        :param assembly:
+            An assembly object stored within the local SQLite database.
         """
 
         fasta_gz = os.path.join(
@@ -165,23 +166,33 @@ class AssemblyStorage:
         subprocess.run(cmd)
 
     def hisat_index(self, assembly):
+        """Generate hisat2 indecies for a given assembly.
+
+        This function calls `hisat2-build -f` from the command line.
+
+        :param assembly:
+            An assembly object stored within the local SQLite database.
         """
-        """
-        # TODO: Remove cd handler and its use. Not needed.
+
         file_path = os.path.join(
             self.base_path,
-            assembly.base_filepath)
+            assembly.base_filepath,
+            assembly.base_filename + '.fa')
 
-        fasta_file = assembly.base_filename + '.fa'
+        out_base = os.path.join(
+            self.base_path,
+            assembly.base_filepath,
+            assembly.base_filename)
 
-        with cd(file_path):
+        cmd = ['hisat2-build', '-f', file_path, out_base]
 
-            cmd = ['hisat2-build', '-f', fasta_file, assembly.base_filename]
-
-            subprocess.run(cmd)
+        subprocess.run(cmd)
 
     def gtf(self, assembly):
-        """
+        """Generates a `.gtf` file from a corresponding `.gff3` file.
+
+        :param assembly:
+            An assembly object stored within the local SQLite database.
         """
         gff3_file = os.path.join(
             self.base_path,
@@ -189,10 +200,14 @@ class AssemblyStorage:
             assembly.base_filename)
 
         cmd = ['gffread', '-T', gff3_file + '.gff3', '-o', gff3_file + '.gtf']
+
         subprocess.run(cmd)
 
     def splice_site(self, assembly):
-        """
+        """Generates the splice sites of a given assembly from a `.gtf` file.
+
+        :param assembly:
+            An assembly object stored within the local SQLite database.
         """
         gft_file = os.path.join(
             self.base_path,

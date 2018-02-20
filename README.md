@@ -7,23 +7,27 @@ download desired genome assembly files from the
 
 ## TODO
 
-- [ ] Gather TODOs.
-- [ ] Add metadata json files - one with pynome info, the other with ensembl info.
+- [x] Gather TODOs.
+- [x] Add metadata json files - one with pynome info, the other with ensembl info.
+- [x] Factor out cd from prepare methods.
+- [x] Docstring for prepare methods.
+- [ ] Change use of FTP to context manager and re-factor download functions.
 - [ ] Consider API linkage to the crawl command.
 - [ ] assembly.delete()
 - [ ] assembly.prepare()
 - [ ] assembly.update()
 - [ ] assemblystorage.update() -- test function.
+- [ ] assemblystorage.download()
+- [ ] assemblystorage.find_assembly()
+- [ ] assemblystorage.add_source()
+- [ ] assemblystorage.push_irods()
 - [ ] Create api for selecting assemblies by:
   + Species
   + Genus
   + Intraspecific_name
   + Assembly_ID
-- [ ] Docstring for prepare methods.
-- [ ] Factor out cd from prepare methods.
 - [ ] Consider the changes needed to the CLI for SRA functionality.
 - [ ] cli.push_irods()
-- [ ] Change use of FTP to context manager and re-factor download functions.
 
 
 ## Installation
