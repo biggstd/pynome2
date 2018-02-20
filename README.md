@@ -25,7 +25,7 @@ download desired genome assembly files from the
 - [x] assemblystorage.download()
 - [x] assemblystorage.query_local_assemblies_by()
 - [x] assemblystorage.add_source()
-- [ ] assemblystorage.prepare()
+- [x] assemblystorage.prepare()
 - [ ] assemblystorage.push_irods()
 - [ ] Consider the changes needed to the CLI for SRA functionality.
 - [ ] cli.push_irods()

@@ -47,14 +47,13 @@ def test_AssemblyStorage(test_config, test_ed):
     # Assign all found genomes to a list.
     found_genomes = test_assembly_storage.query_local_assemblies()
 
-    # print([a for a in found_genomes])
-
     # test_assembly_storage.download(found_genomes)
     test_assembly_storage.download_all()
 
     # Display all entries.
     # print([a for a in found_genomes])
 
+    print('Querty Testing...\n')
     test_query = test_assembly_storage.query_local_assemblies_by(
         'species', 'glabrata'
     )
@@ -62,7 +61,4 @@ def test_AssemblyStorage(test_config, test_ed):
     print(test_query)
 
     for a in found_genomes:
-        test_assembly_storage.decompress(a)
-        test_assembly_storage.hisat_index(a)
-        test_assembly_storage.gtf(a)
-        test_assembly_storage.splice_site(a)
+        test_assembly_storage.prepare(a)

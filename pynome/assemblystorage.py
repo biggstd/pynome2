@@ -283,3 +283,10 @@ class AssemblyStorage:
             cmd = ['hisat2_extract_splice_sites.py', gft_file]
 
             subprocess.run(cmd, stdout=f)
+
+    def prepare(self, assembly):
+        """Prepares assembly files for downstream use."""
+        self.decompress(assembly)
+        self.hisat_index(assembly)
+        self.gtf(assembly)
+        self.splice_site(assembly)
