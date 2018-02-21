@@ -12,7 +12,7 @@
 import os
 import json
 import logging
-from contextlib import contextmanager
+from sqlalchemy import create_engine
 
 
 def read_json_config(config_file='pynome_config.json'):

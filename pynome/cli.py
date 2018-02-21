@@ -17,7 +17,8 @@ from pynome.utils import read_json_config
 
 @click.group()
 @click.pass_context
-def pynome(ctx):
+@click.option('--config', default='pynome_config.json', type=click.Path(exists=True))
+def pynome(ctx, config):
     """
     This is the function which the command line invocation
     of pynome calls.
@@ -37,7 +38,7 @@ def pynome(ctx):
         ctx.obj = dict()
 
     # Read the configuration file to get values for the databases.
-    ctx.obj['config'] = read_json_config()
+    ctx.obj['config'] = read_json_config(config)
 
     # Initialize the instance of AssemblyStorage. Load either the variables
     # found in the configuration files, or `None` which will cause Pynome to
@@ -67,7 +68,7 @@ def pynome(ctx):
     )
 
     # Add the ensembl_database to the source list of assembly_storage.
-    ctx.obj['as'].sources.append(ctx.obj['ed'])
+    ctx.obj['as'].add_source(ctx.obj['ed'])
 
 
 # Since it is bad form to redefine Python primatives, pass the
@@ -89,17 +90,18 @@ def list_assemblies(ctx):
 @click.pass_context
 def download(ctx):
     """Download assembly files."""
-    # TODO: Break this up (better develop the assembly storage api) for
-    # more than one genome source. For now this only handles ensembl.
 
     # Get a list of all asemblies in the database..
-    assemblies = ctx.obj['as'].query_local_assemblies()
+    # assemblies = ctx.obj['as'].query_local_assemblies()
+    ctx.obj['as'].download_all()
 
     # Download these found genome files.
-    ctx.obj['ed'].download(
-        assemblies=assemblies,
-        base_path=ctx.obj['config']["storage_config"].get("base_path")
-    )
+    # ctx.obj['ed'].download(
+        # assemblies=assemblies,
+        # base_path=ctx.obj['config']["storage_config"].get("base_path"))
+
+    # Download the SRA files.
+    ctx.obj['as'].download_all_sra()
 
 
 @pynome.command()

@@ -380,6 +380,7 @@ class EnsemblDatabase(AssemblyDatabase):
     def download(self, assemblies, base_path=None):
         """
         """
+        # TODO: Consider how this function is called from AssemblyStorage.
         # If a base_path is not given, create a folder called 'genomes',
         # and place it in the current directory.
         if base_path is None:

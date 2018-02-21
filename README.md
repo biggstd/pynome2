@@ -26,8 +26,9 @@ download desired genome assembly files from the
 - [x] assemblystorage.query_local_assemblies_by()
 - [x] assemblystorage.add_source()
 - [x] assemblystorage.prepare()
+- [x] Consider the changes needed to the CLI for SRA functionality.
+- [ ] Download function from CLI interface needs to call all needed ensembl functions
 - [ ] assemblystorage.push_irods()
-- [ ] Consider the changes needed to the CLI for SRA functionality.
 - [ ] cli.push_irods()
 - [ ] Create Docker image.
 - [ ] Add Travis-CI integration.

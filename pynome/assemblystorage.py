@@ -19,6 +19,7 @@ from sqlalchemy.orm import sessionmaker
 # Inter-package imports.
 from pynome.assembly import Base
 from pynome.assembly import Assembly
+from pynome.sra import download_sra_json
 
 
 class AssemblyStorage:
@@ -48,9 +49,16 @@ class AssemblyStorage:
             The base path to be used with iRODs integration.
         """
 
-        # If the sqlite path is not give, create one in the current directory.
+        # If the sqlite path is not give, create one in memory.
         if sqlite_path is None:
-            sqlite_path = "sqlite:///genomes.db"
+            sqlite_path = "sqlite://"
+
+        # Otherwise, create the intermediate path, then append the
+        # database filename to the class attribute.
+        else:
+            if not os.path.exists(sqlite_path):
+                os.makedirs(sqlite_path)
+            sqlite_path = os.path.join('sqlite:///' + sqlite_path, 'Genome.db')
 
         self.sqlite_path = sqlite_path
 
@@ -61,6 +69,10 @@ class AssemblyStorage:
 
         self.base_path = base_path
 
+        # Create sub-paths for each type of file to be downloaded.
+        self.base_genome_path = os.path.join(self.base_path, 'Genome')
+        self.base_sra_path = os.path.join(self.base_path, 'RNA-Seq')
+
         # Define the public attributes of the class.
         self.sources = dict()
 
@@ -69,7 +81,7 @@ class AssemblyStorage:
         Session = sessionmaker()
 
         # Prepare the SQLite engine and session.
-        self.engine = create_engine(sqlite_path)
+        self.engine = create_engine(self.sqlite_path)
         # Create the tables.
         Base.metadata.create_all(self.engine)
         self.session = Session(bind=self.engine)
@@ -163,7 +175,7 @@ class AssemblyStorage:
             assembly_db = self.sources[src]
 
             # Use the database download function to download the assembly.
-            assembly_db.download(assembly_list, self.base_path)
+            assembly_db.download(assembly_list, self.base_genome_path)
 
     def download_all(self):
         """Downloads all assemblies found within each source. The assemblies
@@ -176,7 +188,14 @@ class AssemblyStorage:
             src_assemblies = self.query_local_assemblies_by(
                 'source_database', src_name)
 
-            source.download(src_assemblies, self.base_path)
+            source.download(src_assemblies, self.base_genome_path)
+
+    def download_all_sra(self):
+        """
+        """
+        tax_ids = [gen.taxonomy_id for gen in self.query_local_assemblies()]
+
+        download_sra_json(self.base_sra_path, tax_ids)
 
     def add_source(self, new_source):
         """Append a new source to the sources dictionary."""
@@ -199,12 +218,12 @@ class AssemblyStorage:
         """
 
         fasta_gz = os.path.join(
-            self.base_path,
+            self.base_genome_path,
             assembly.base_filepath,
             assembly.base_filename + '.fa.gz')
 
         gff3_gz = os.path.join(
-            self.base_path,
+            self.base_genome_path,
             assembly.base_filepath,
             assembly.base_filename + '.gff3.gz')
 
@@ -228,13 +247,13 @@ class AssemblyStorage:
 
         # Construct the path to the input file.
         file_path = os.path.join(
-            self.base_path,
+            self.base_genome_path,
             assembly.base_filepath,
             assembly.base_filename + '.fa')
 
         # Construct the base filename of the output files.
         out_base = os.path.join(
-            self.base_path,
+            self.base_genome_path,
             assembly.base_filepath,
             assembly.base_filename)
 
@@ -255,7 +274,7 @@ class AssemblyStorage:
             An assembly object stored within the local SQLite database.
         """
         gff3_file = os.path.join(
-            self.base_path,
+            self.base_genome_path,
             assembly.base_filepath,
             assembly.base_filename)
 
@@ -270,12 +289,12 @@ class AssemblyStorage:
             An assembly object stored within the local SQLite database.
         """
         gft_file = os.path.join(
-            self.base_path,
+            self.base_genome_path,
             assembly.base_filepath,
             assembly.base_filename + '.gtf')
 
         splice_output = os.path.join(
-            self.base_path,
+            self.base_genome_path,
             assembly.base_filepath,
             assembly.base_filename + '.Splice_sites')
 

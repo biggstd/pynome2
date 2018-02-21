@@ -1,3 +1,0 @@
-[console_scripts]
-pynome = pynome.cli:pynome
-
