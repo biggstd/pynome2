@@ -63,7 +63,7 @@ def pynome(ctx, config):
         kingdoms=ctx.obj['config']['ensembl_config']['kingdoms'],
         release_version=ctx.obj['config']['ensembl_config']['release_version'],
         bad_filenames=ctx.obj['config']['ensembl_config']['bad_filenames'],
-        # Optional values.
+        # Optional values. See above for .get() usage.
         crawl_urls=ctx.obj['config']['ensembl_config'].get('crawl_urls')
     )
 
@@ -90,15 +90,8 @@ def list_assemblies(ctx):
 @click.pass_context
 def download(ctx):
     """Download assembly files."""
-
-    # Get a list of all asemblies in the database..
-    # assemblies = ctx.obj['as'].query_local_assemblies()
+    # Call the download_all() function of the AssemblyStorage class.
     ctx.obj['as'].download_all()
-
-    # Download these found genome files.
-    # ctx.obj['ed'].download(
-        # assemblies=assemblies,
-        # base_path=ctx.obj['config']["storage_config"].get("base_path"))
 
     # Download the SRA files.
     ctx.obj['as'].download_all_sra()
@@ -132,9 +125,11 @@ def discover(ctx):
 
     # Tell the user the crawl is starting, and what urls are to be examined.
     click.echo('Crawl of the Ensembl FTP server starting...')
-    url_str = ctx.obj['config']['ensembl_config']['crawl_urls'] \
+
+    url_str = ctx.obj['config']['ensembl_config'].get('crawl_urls') \
         or ctx.obj['ed'].top_dirs
     url_str = '\n\t' + '\n\t'.join(url_str)
+
     click.echo(f'Begining a crawl at the following URIs: {url_str}')
 
     # Download the metadata file.

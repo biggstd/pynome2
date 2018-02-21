@@ -180,6 +180,9 @@ class AssemblyStorage:
     def download_all(self):
         """Downloads all assemblies found within each source. The assemblies
         to be downloaded must be present in the local SQLite database.
+
+        This call to the AssemblyDatabase child class should download all
+        files needed to build complete assembly metadata sets.
         """
 
         # For each source, find all assemblies that belong.

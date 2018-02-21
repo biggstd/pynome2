@@ -81,6 +81,7 @@ class EnsemblDatabase(AssemblyDatabase):
         self.release_version = release_version
         self.bad_filenames = bad_filenames
         self.crawl_urls = crawl_urls
+        self.assemblies = list()
 
         # Define private attributes of the class.
         self.metadata_df = None
@@ -334,9 +335,11 @@ class EnsemblDatabase(AssemblyDatabase):
         # Close the FTP connection.
         self.ftp.quit()
 
-    def download_metadata(self, base_path=os.getcwd()):
+    def download_metadata(self, base_path=None):
         """
         """
+        if base_path is None:
+            base_path = os.path.join(os.getcwd(), 'genomes')
 
         # Build the path to the local file.
         target_file = os.path.join(base_path, 'species.txt')
