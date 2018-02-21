@@ -126,6 +126,7 @@ def discover(ctx):
     # Tell the user the crawl is starting, and what urls are to be examined.
     click.echo('Crawl of the Ensembl FTP server starting...')
 
+    # Build a display of URI for the user to see.
     url_str = ctx.obj['config']['ensembl_config'].get('crawl_urls') \
         or ctx.obj['ed'].top_dirs
     url_str = '\n\t' + '\n\t'.join(url_str)
